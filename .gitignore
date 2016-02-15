@@ -1,5 +1,4 @@
 config.ini
-web/config.php
 log/*
 tmp/update
 

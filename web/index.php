@@ -19,9 +19,7 @@ function create_page_link($caption, $page) {
 	echo "<a href=\"?page=$page&amp;q=" . request_value('q', '') . "&amp;nickname=" . request_value('nickname', '') . "\">$caption</a> ";
 }
 
-require_once('config.php');
-
-$db = new PDO("pgsql:host=$db_host;port=$db_port;dbname=$db_name;user=$db_user;password=$db_pass");
+require_once(dirname(__FILE__) . '/../lib/common.php');
 
 if(isset($_REQUEST['permalink'])) {
 	$index = $_REQUEST['permalink'];
