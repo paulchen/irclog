@@ -56,6 +56,17 @@ def extract_nickname(line):
     return match.group(1)
 
 
+def extract_text(line):
+    text_pattern = r'^[^ ]+ <[^>]+> (.*)'
+    match = re.match(text_pattern, line)
+    if match is None:
+        text_pattern = r'^[^ ]+ (.*)'
+        match = re.match(text_pattern, line)
+        if match is None:
+            return line
+    return match.group(1)
+
+
 def process_file(filename, short_name):
     logger.debug('Processing file %s' % short_name)
 
@@ -77,11 +88,12 @@ def process_file(filename, short_name):
             if line_number > max_line:
                 timestamp = extract_timestamp(line, date_string)
                 nickname = extract_nickname(line)
+                text = extract_text(line)
 
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, nickname, raw_text) VALUES (%s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, nickname, line))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, nickname, raw_text, text) VALUES (%s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, nickname, line, text))
 
             line_number += 1
 

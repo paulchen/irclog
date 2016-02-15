@@ -96,8 +96,14 @@ while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
 	$link = '?permalink=' . $row->message_pk;
 	$anchor = 'message' . $row->message_pk;
 	$timestamp = $row->timestamp;
-	$text = htmlentities(preg_replace('/^[^ ]+ /', '', $row->raw_text), ENT_QUOTES, 'UTF-8');
-	print "<a id=\"$anchor\" href=\"$link\">$timestamp</a> $text<br />";
+	$nickname = $row->nickname;
+	$text = $row->text;
+	if($nickname != '') {
+		print "<a id=\"$anchor\" href=\"$link\">$timestamp</a> &lt;$nickname&gt; $text<br />";
+	}
+	else {
+		print "<a id=\"$anchor\" href=\"$link\">$timestamp</a> $text<br />";
+	}
 }
 
 $stmt->closeCursor();
