@@ -3,6 +3,7 @@ $start_time = microtime(true);
 
 require_once('Mail/mime.php');
 require_once('Mail.php');
+require_once('linkify.php');
 
 $settings = parse_ini_file(dirname(__FILE__) . '/../config.ini', TRUE);
 
@@ -225,6 +226,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$data = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
+		$row['text'] = linkify($row['text']);
 		$data[$row['message_pk']] = $row;
 	}
 	db_stmt_close($result);
