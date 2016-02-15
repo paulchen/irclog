@@ -1,0 +1,7 @@
+[general]
+db_host = localhost
+db_port = 5432
+db_name = ircdb
+db_user = ircdb
+db_pass = 
+
