@@ -81,6 +81,7 @@ def process_file(filename, short_name):
 
     logger.debug('Lines already known: %s' % max_line)
 
+    messages_added = 0
     with open(filename, 'r') as f:
         line_number = 0
         cur = conn.cursor()
@@ -94,12 +95,16 @@ def process_file(filename, short_name):
                     logger.debug('Inserting line %s' % line_number)
 
                     cur.execute("""INSERT INTO message (source_file, line, timestamp, nickname, raw_text, text) VALUES (%s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, nickname, line, text))
+                    messages_added += 1
 
             line_number += 1
 
         f.close()
         conn.commit()
         cur.close()
+
+    return messages_added
+
 
 run_once()
 
@@ -131,9 +136,21 @@ for f in os.listdir(directory):
 
 files.sort()
 
+messages_added = 0
 for f in files:
     filename = os.path.join(directory, f)
-    process_file(filename, f)
+    messages_added += process_file(filename, f)
+
+if messages_added > 0:
+    cur = conn.cursor()
+    cur.execute("""SELECT COUNT(*) FROM message WHERE deleted = false""")
+    row = cur.fetchone()
+    total_messages = row[0]
+
+    cur.execute("""INSERT INTO SETTINGS (key, value) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value""", ('visible_shouts', total_messages))
+
+    conn.commit()
+    cur.close()
 
 conn.close()
 
