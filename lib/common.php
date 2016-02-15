@@ -179,13 +179,8 @@ function get_setting($key) {
 }
 
 function set_setting($key, $value) {
-	// TODO transaction
-	$query = 'UPDATE settings SET value = ? WHERE "key" = ?;';
-	db_query($query, array($value, $key));
-	$query = 'INSERT INTO settings ("key", value) SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM settings WHERE "key" = ?)';
-	db_query($query, array($key, $value, $key));
-//	$query = 'INSERT INTO settings ("key", value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?';
-//	db_query($query, array($value, $key, $key, $value, $key));
+	$query = 'INSERT INTO SETTINGS (key, value) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value';
+	db_query($query, array($key, $value));
 }
 
 function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
@@ -239,9 +234,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$last_loaded_id = $ids[0];
 	}
 
-	$total_shouts = 1234;
-	// TODO
-	// $total_shouts = get_setting('visible_shouts');
+	$total_shouts = get_setting('visible_shouts');
 
 	if($filter != $default_filter) {
 		$query = "SELECT COUNT(*) shouts FROM message m WHERE $filter";
