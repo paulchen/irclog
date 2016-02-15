@@ -42,7 +42,7 @@ if(isset($_REQUEST['page'])) {
 }
 $offset = ($page-1)*100;
 
-$where_parts = array();
+$where_parts = array('DELETED = false');
 $params = array();
 
 if(isset($_REQUEST['q']) && trim($_REQUEST['q']) != '') {
