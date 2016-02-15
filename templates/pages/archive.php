@@ -28,6 +28,7 @@ if(!$ajax):
 	a:hover { color: red; }
 	img { border: none; }
 	td { padding: 2px; }
+	span.servicemsg { font-style: italic; }
 	</style>
         <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"></link>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
@@ -215,7 +216,11 @@ endif; /* if(!$ajax) */ ?>
 						<td class="date"><a id="message<?php echo $message['message_pk'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['message_pk'] ?>"><?php echo $message['timestamp'] ?></a></td>
 						<td class="user"><?php echo $message['nickname'] ?></td>
 						<td class="message">
-							<?php echo $message['text'] ?>
+							<?php if($message['nickname'] == ''): ?>
+								<span class="servicemsg"><?php echo $message['text'] ?></span>
+							<?php else: ?>
+								<?php echo $message['text'] ?>
+							<?php endif; ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
