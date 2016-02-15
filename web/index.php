@@ -1,112 +1,127 @@
 <?php
-function request_value($key, $default) {
-	if(!isset($_REQUEST[$key])) {
-		return $default;
-	}
-	return htmlentities($_REQUEST[$key], ENT_QUOTES, 'UTF-8');
-}
-
-function create_page_link($caption, $page) {
-	global $pages;
-
-	if($page < 1) {
-		$page = 1;
-	}
-	if($page > $pages) {
-		$page = $pages;
-	}
-
-	echo "<a href=\"?page=$page&amp;q=" . request_value('q', '') . "&amp;nickname=" . request_value('nickname', '') . "\">$caption</a> ";
-}
-
 require_once(dirname(__FILE__) . '/../lib/common.php');
 
-if(isset($_REQUEST['permalink'])) {
-	$index = $_REQUEST['permalink'];
-	$stmt = $db->prepare('SELECT COUNT(*) messages FROM message WHERE message_pk > :pk');
-	$stmt->execute(array($index));
-	$row = $stmt->fetch(PDO::FETCH_OBJ);
-	$stmt->closeCursor();
-	$messages = $row->messages;
-	$page = floor($messages/100)+1;
-	header("Location: ?page=$page#message$index");
+$default_page = 1;
+$default_limit = 100;
+
+if(isset($_GET['id'])) {
+	$id = $_GET['id'];
+	if(!preg_match('/^[0-9]+$/', $id)) {
+		die();
+	}
+	if(!isset($_GET['limit'])) {
+		$limit = $default_limit;
+	}
+	else {
+		$limit = $_GET['limit'];
+		if(!preg_match('/^[0-9]+$/', $limit)) {
+			$limit = $default_limit;
+		}
+	}
+
+	$query = 'SELECT COUNT(*) messages FROM message WHERE message_pk > ?';
+	$data = db_query($query, array($id));
+
+	$page = floor($data[0]['messages']/$limit)+1;
+
+	header("Location: ?limit=$limit&page=$page#message${id}");
 	die();
 }
 
-$page = 1;
-if(isset($_REQUEST['page'])) {
-	$page = $_REQUEST['page'];
-	if(!preg_match('/^[1-9][0-9]*$/', $page)) {
-		die();
-	}
+$page = isset($_GET['page']) ? $_GET['page'] : $default_page;
+$limit = isset($_GET['limit']) ? $_GET['limit'] : $default_limit;
+if(!preg_match('/^[0-9]+$/', $page) || $page < 1) {
+	$page = $default_page;
 }
-$offset = ($page-1)*100;
-
-$where_parts = array('DELETED = false');
-$params = array();
-
-if(isset($_REQUEST['q']) && trim($_REQUEST['q']) != '') {
-	$where_parts[] = 'raw_text ILIKE :q';
-	$params[] = '%' . $_REQUEST['q'] . '%';
+if(!preg_match('/^[0-9]+$/', $limit)) {
+	$limit = $default_limit;
 }
-if(isset($_REQUEST['nickname']) && trim($_REQUEST['nickname']) != '') {
-	$where_parts[] = 'LOWER(nickname) = :nickname';
-	$params[] = strtolower($_REQUEST['nickname']);
+$offset = ($page-1)*$limit;
+
+$limit = intval($limit);
+$offset = intval($offset);
+
+$ajax = (isset($_GET['ajax']) && $_GET['ajax'] == 'on');
+$refresh = (isset($_GET['refresh']) && $_GET['refresh'] == 'on');
+
+$text = isset($_GET['text']) ? trim($_GET['text']) : '';
+$user = isset($_GET['user']) ? trim($_GET['user']) : '';
+$date = isset($_GET['date']) ? trim($_GET['date']) : '';
+
+$last_shown_id = -1;
+if(isset($_GET['last_shown_id']) && preg_match('/^[0-9]+$/', $_GET['last_shown_id'])) {
+	$last_shown_id = $_GET['last_shown_id'];
 }
 
-$where = '';
-if(count($where_parts) > 0) {
-	$where = 'WHERE ' . implode(' AND ', $where_parts);
+$message_data = get_messages($text, $user, $date, $offset, $limit, $last_shown_id);
+$messages = $message_data['messages'];
+$filtered_shouts = $message_data['filtered_shouts'];
+$total_shouts = $message_data['total_shouts'];
+$page_count = $message_data['page_count'];
+$last_loaded_id = $message_data['last_loaded_id'];
+$new_messages = $message_data['new_messages'];
+
+$link_parts = "?limit=$limit";
+if($text != '') {
+	$link_parts .= '&amp;text=' . urlencode($text);
 }
+if($user != '') {
+	$link_parts .= '&amp;user=' . urlencode($user);
+}
+if($date != '') {
+	$link_parts .= '&amp;date=' . urlencode($date);
+}
+$previous_page = $page-1;
+if($previous_page <= 0) {
+	$previous_page = 1;
+}
+if($previous_page > $page_count) {
+	$previous_page = $page_count;
+}
+$next_page = $page+1;
+if($next_page <= 0) {
+	$next_page = 1;
+}
+if($next_page > $page_count) {
+	$next_page = $page_count;
+}
+$previous_link = "$link_parts&amp;page=$previous_page";
+$next_link = "$link_parts&amp;page=$next_page";
+$first_link = "$link_parts&amp;page=1";
+$last_link = "$link_parts&amp;page=$page_count";
+$generic_link = str_replace('&amp;', '&', "$link_parts&amp;page=");
 
-$stmt = $db->prepare("SELECT COUNT(*) messages FROM message $where");
-$stmt->execute($params);
-$row = $stmt->fetch(PDO::FETCH_OBJ);
-$stmt->closeCursor();
-$messages = $row->messages;
-$pages = ceil($messages/100);
-
-?>
-
-<form method="get" action=".">
-<table>
-<tr><td>Text</td><td><input type="text" name="q" value="<?php echo request_value('q', ''); ?>" /></td></tr>
-<tr><td>User</td><td><input type="text" name="nickname" value="<?php echo request_value('nickname', ''); ?>" /></td></tr>
-<tr><td>Page</td><td><input type="text" name="page" value="<?php echo request_value('page', 1); ?>" /></td>
-<td>
-<?php
-create_page_link('First', 1);
-create_page_link('Previous', $page-1);
-create_page_link('Next', $page+1);
-create_page_link('Last', $pages);
-?>
-</td>
-</tr>
-</table>
-<input type="submit">
-</form>
-
-<hr />
-
-<div style="font-family: monospace;">
-<?php
-$stmt = $db->prepare("SELECT * FROM message $where ORDER BY message_pk DESC LIMIT 100 OFFSET $offset");
-$stmt->execute($params);
-while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
-	$link = '?permalink=' . $row->message_pk;
-	$anchor = 'message' . $row->message_pk;
-	$timestamp = $row->timestamp;
-	$nickname = $row->nickname;
-	$text = $row->text;
-	if($nickname != '') {
-		print "<a id=\"$anchor\" href=\"$link\">$timestamp</a> &lt;$nickname&gt; $text<br />";
+if(!$ajax) {
+	$memcached_key = "${memcached_prefix}_userlist";
+	$memcached_data = $memcached->get($memcached_key);
+	if($memcached_data == null) {
+		$query = 'SELECT m.nickname FROM message m GROUP BY m.nickname ORDER BY COUNT(*) DESC';
+		$users = json_encode(array_map(function($a) { return $a['nickname']; }, db_query($query)));
+		$memcached->set($memcached_key, $users, 300);
 	}
 	else {
-		print "<a id=\"$anchor\" href=\"$link\">$timestamp</a> $text<br />";
+		$users = $memcached_data;
 	}
 }
 
-$stmt->closeCursor();
-?>
-</div>
+// header('Content-Type: application/xhtml+xml; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
+
+if($limit > 1000) {
+	require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
+	die();
+}
+
+ob_start();
+require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
+$data = ob_get_contents();
+ob_clean();
+
+if(!$ajax) {
+	xml_validate($data);
+}
+ob_start("ob_gzhandler");
+echo $data;
+
+log_data();
 

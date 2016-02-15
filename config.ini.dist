@@ -5,3 +5,10 @@ db_name = ircdb
 db_user = ircdb
 db_pass = 
 
+[web]
+refresh_time = 5
+
+[email]
+report_email = paulchen@rueckgr.at
+email_from = Chatbox Cronjob <chatbox@rueckgr.at>
+
