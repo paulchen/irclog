@@ -42,7 +42,7 @@ $limit = intval($limit);
 $offset = intval($offset);
 
 $ajax = (isset($_GET['ajax']) && $_GET['ajax'] == 'on');
-$refresh = (isset($_GET['refresh']) && $_GET['refresh'] == 'on');
+$refresh = (!isset($_GET['refresh']) || $_GET['refresh'] == 'on');
 
 $text = isset($_GET['text']) ? trim($_GET['text']) : '';
 $user = isset($_GET['user']) ? trim($_GET['user']) : '';
