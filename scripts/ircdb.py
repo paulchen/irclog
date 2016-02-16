@@ -36,7 +36,7 @@ def run_once():
     except:
         logger.debug('Already running, terminating now')
         os._exit(0)
-
+    
 
 def extract_timestamp(line, date_string):
     timestamp_pattern = r'^([0-9]{2}:[0-9]{2}:[0-9]{2}) '
@@ -47,12 +47,29 @@ def extract_timestamp(line, date_string):
     return date_string + " " + time_string
 
 
+def get_random_color():
+    # TODO
+    return '000000';
+
+
 def extract_nickname(line):
     nickname_pattern = r'^[^ ]+ <.([^>]+)>'
     match = re.match(nickname_pattern, line)
     if match is None:
-        return ''
-    return match.group(1)
+        return None
+
+    username = match.group(1)
+    cur = conn.cursor()
+    cur.execute("""SELECT user_pk FROM "user" WHERE username = %s""", (username, ))
+    row = cur.fetchone()
+    if row is None:
+        cur.execute("""INSERT INTO "user" (username, color) VALUES (%s, %s) RETURNING user_pk""", (username, get_random_color()))
+        user_id = cur.fetchone()[0]
+    else:
+        user_id = row[0]
+
+    cur.close()
+    return user_id
 
 
 def extract_text(line):
@@ -87,13 +104,13 @@ def process_file(filename, short_name):
         for line in f:
             if line_number > max_line:
                 timestamp = extract_timestamp(line, date_string)
-                nickname = extract_nickname(line)
+                user_id = extract_nickname(line)
                 text = extract_text(line)
 
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, nickname, raw_text, text) VALUES (%s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, nickname, line, text))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text) VALUES (%s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text))
                     messages_added += 1
 
             line_number += 1
