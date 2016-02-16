@@ -266,9 +266,11 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	db_stmt_close($result);
 
 	$last_loaded_id = -1;
+	/* TODO
 	if(count($ids) > 0) {
 		$last_loaded_id = $ids[0];
 	}
+	 */
 
 	$total_shouts = get_setting('visible_shouts');
 
