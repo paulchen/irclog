@@ -24,13 +24,10 @@ function add_user_link(&$row) {
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
 }
 
-/*
-
 function messages_per_hour(&$row) {
 	$link_parts = build_link_from_request('day', 'month', 'year', 'user');
 
 	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
-	spammer_smiley($row);
 }
 
 function messages_per_month(&$row) {
@@ -50,12 +47,7 @@ function messages_per_year(&$row) {
 	spammer_smiley($row);
 }
 
-function init_ego(&$user_egos, $id) {
-	if(!isset($user_egos[$id])) {
-		$user_egos[$id] = 0;
-	}
-}
-
+/*
 function total_words($data) {
 	$data = $data[0];
 
@@ -80,33 +72,20 @@ function total_words($data) {
 
 	return $data;
 }
-
+ */
 function top_spammers_total($data) {
 	global $total_days;
 
 	$total_shouts = 0;
-	$total_smilies = 0;
-	$total_words = 0;
 	foreach($data[0] as $row) {
 		$total_shouts += $row['shouts'];
-		$total_smilies += $row['smilies'];
-		$total_words += $row['total_words'];
 	}
 
 	return array('',
 		'Total',
 		$total_shouts,
-		sprintf('%.4f', round($total_shouts/$total_days, 4)),
-		'100.0000 %',
-		$total_smilies,
-		sprintf('%.4f', round($total_smilies/$total_shouts, 4)),
-		'',
-		'',
-		$total_words,
-		sprintf('%.4f', round($total_words/$total_shouts, 4))
 	);
 }
- */
 
 $main_page = false;
 if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour'])) {
@@ -142,7 +121,7 @@ $params = array();
 $what_parts = array();
 
 if(isset($_REQUEST['hour'])) {
-	$filter_parts[] = "lpad(cast(\"hour\" % 24 as text), 2, '0') = ?";
+	$filter_parts[] = "extract(hour from timestamp) = ?";
 	$params[] = $hour;
 	$what_parts[] = "hour $hour";
 }
@@ -176,7 +155,7 @@ $queries = array();
 
 $queries[] = array(
 		'title' => 'Top spammers',
-		'query' => "select u.username AS name, count(*)
+		'query' => "select u.username AS name, count(*) shouts
 				from \"user\" u join message m on (u.user_pk = m.user_fk)
 				where $filter
 				group by u.user_pk, u.username
@@ -192,7 +171,7 @@ $queries[] = array(
 
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select extract(hour from timestamp) as hour, count(*) from message where $filter group by hour order by hour asc",
+		'query' => "select extract(hour from timestamp) as hour, count(*) as shouts from message m where $filter group by hour order by hour asc",
 		'params' => array_merge($params),
 		'processing_function' => 'messages_per_hour',
 		'processing_function_all' => 'duplicates0',
