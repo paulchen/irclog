@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, psycopg2, time, sys, re, fcntl, logging, configparser
+import os, psycopg2, time, sys, re, fcntl, logging, configparser, random
 
 
 last_update = 0
@@ -48,8 +48,13 @@ def extract_timestamp(line, date_string):
 
 
 def get_random_color():
-    # TODO
-    return '000000';
+    available_colors = [ '00cc00', '0066b3', 'ff8000', 'ffcc00', '330099', '990099', 'ccff00',
+                         'ff0000', '808080', '008f00', '00487d', 'b35a00', 'b38f00', '6b006b',
+                         '8fb300', 'b30000', 'bebebe', '80ff80', '80c9ff', 'ffc080', 'ffe680',
+                         'aa80ff', 'ee00cc', 'ff8080', '666600', 'ffbfff', '00ffcc', 'cc6699',
+                         '999900' ]
+
+    return random.choice(available_colors)
 
 
 def extract_nickname(line):
