@@ -5,7 +5,6 @@ import os, psycopg2, time, sys, re, fcntl, logging, configparser
 
 last_update = 0
 directory = '/home/ircbot/.irssi/logs/localhost/#chatbox'
-timestamp_file = '/home/ircbot/ircdb/update'
 timestamp_file = os.path.dirname(os.path.realpath(__file__)) + '/../tmp/update'
 logfile = os.path.dirname(os.path.realpath(__file__)) + '/../log/update.log'
 config_file = os.path.dirname(os.path.realpath(__file__)) + '/../config.ini'
