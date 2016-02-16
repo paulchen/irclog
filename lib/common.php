@@ -194,7 +194,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$params[] = "%$text%";
 	}
 	if($user != '') {
-		$filters[] = 'LOWER(m.nickname) = LOWER(?)';
+		$filters[] = 'LOWER(u.username) = LOWER(?)';
 		$params[] = $user;
 	}
 	if($date != '') {
@@ -214,8 +214,9 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$new_messages = $count_data[0]['anzahl'];
 	}
 
-	$query = "SELECT m.message_pk, m.timestamp, m.nickname, m.raw_text, m.text
+	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text
 			FROM message m
+				JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
 			ORDER BY m.message_pk DESC
 			OFFSET ? LIMIT ?";

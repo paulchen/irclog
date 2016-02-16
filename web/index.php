@@ -95,7 +95,7 @@ if(!$ajax) {
 	$memcached_key = "${memcached_prefix}_userlist";
 	$memcached_data = $memcached->get($memcached_key);
 	if($memcached_data == null) {
-		$query = 'SELECT m.nickname FROM message m GROUP BY m.nickname ORDER BY COUNT(*) DESC';
+		$query = 'SELECT u.username FROM message m JOIN "user" u ON (m.user_fk = u.user_pk) GROUP BY u.username ORDER BY COUNT(*) DESC';
 		$users = json_encode(array_map(function($a) { return $a['nickname']; }, db_query($query)));
 		$memcached->set($memcached_key, $users, 300);
 	}
