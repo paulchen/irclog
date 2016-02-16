@@ -214,7 +214,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$new_messages = $count_data[0]['anzahl'];
 	}
 
-	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text
+	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text, u.color
 			FROM message m
 				JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
