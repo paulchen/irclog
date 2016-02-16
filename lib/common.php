@@ -232,7 +232,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$new_messages = $count_data[0]['anzahl'];
 	}
 
-	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text, u.color
+	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text, m.html, u.color
 			FROM message m
 				LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
@@ -244,9 +244,16 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$data = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
-		$row['text'] = linkify($row['text']);
-		$row['text'] = insert_smileys($row['text']);
+		if($row['html'] != '') {
+			$row['text'] = $row['html'];
+		}
+		else {
+			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
+			$row['text'] = linkify($row['text']);
+			$row['text'] = insert_smileys($row['text']);
+
+			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
+		}
 		$data[$row['message_pk']] = $row;
 	}
 	db_stmt_close($result);
