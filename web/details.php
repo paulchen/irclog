@@ -37,42 +37,14 @@ function messages_per_month(&$row) {
 	$year = $parts[0];
 	$month = $parts[1];
 	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
-	spammer_smiley($row);
 }
 
 function messages_per_year(&$row) {
 	$link_parts = build_link_from_request('user', 'hour');
 
 	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
-	spammer_smiley($row);
 }
 
-/*
-function total_words($data) {
-	$data = $data[0];
-
-	usort($data, function($a, $b) {
-		if($a['total_words'] == $b['total_words']) {
-			if($a['shouts'] == $b['shouts']) {
-				if($a['name'] < $b['name']) {
-					return -1;
-				}
-				return 1;
-			}
-			if($a['shouts'] < $b['shouts']) {
-				return 1;
-			}
-			return -1;
-		}
-		if($a['total_words'] < $b['total_words']) {
-			return 1;
-		}
-		return -1;
-	});
-
-	return $data;
-}
- */
 function top_spammers_total($data) {
 	global $total_days;
 
@@ -203,59 +175,23 @@ $queries[] = array(
 		'columns' => array('Position', 'Day', 'Messages'),
 		'column_styles' => array('right', 'left', 'right'),
 	);
-/*
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "with smileycount as (
-				select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.month, s.year, sm.smiley
-			), wordcount as (
-				select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.month, s.year, sw.word
-			), hours as (
-				select user_id \"user\", month, year, count(*) count from shouts s where $filter group by user_id, month, year
-			)
-					select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
-						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
-					from (select month, year, count(s.id) count from shouts s where $filter group by month, year) j
-						left join
-						(
-							(select month, year, max(count) max from hours a group by month, year) b
-							left join hours c
-							on (b.month=c.month and b.year=c.year and b.max=c.count)
-						) on (j.month=b.month and j.year=b.year)
-						left join users u on (c.user=u.id)
-						left join
-						(
-							(select e.month, e.year, max(e.count) max
-								from smileycount e
-								group by e.month, e.year) d
-							left join smileycount f
-							on (d.month = f.month and d.year = f.year and d.max = f.count)
-						) on (j.month=d.month and j.year=d.year)
-						left join smilies sm on (f.smiley = sm.id)
-						left join
-						(
-							(select h.month, h.year, max(h.count) max
-								from wordcount h
-								group by h.month, h.year) g
-							left join wordcount i
-							on (g.month = i.month and g.year = i.year and g.max = i.count)
-						) on (j.month=g.month and j.year=g.year)
-						left join words w on (i.word = w.id)
-						order by j.year asc, j.month asc",
-			'params' => array_merge($params, $params, $params, $params),
+			'query' => "select to_char(timestamp, 'YYYY-MM') as month, count(*) as shouts from message where $filter group by month order by month asc",
+			'params' => $params,
 			'processing_function' => 'messages_per_month',
 			'processing_function_all' => 'duplicates0',
-			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-			'column_styles' => array('left', 'right', 'left', 'left', 'left'),
+			'columns' => array('Month', 'Messages'),
+			'column_styles' => array('left', 'right'),
 			'derived_queries' => array(
 				array(
 					'title' => 'Messages per month, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_month',
 					'processing_function_all' => array('duplicates1', 'ex_aequo2'),
-					'columns' => array('Position', 'Month', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-					'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
+					'columns' => array('Position', 'Month', 'Messages'),
+					'column_styles' => array('right', 'left', 'right'),
 				),
 			),
 		);
@@ -263,235 +199,24 @@ if(!isset($_REQUEST['day'])) {
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
-			'query' => "with smileycount as (
-				select s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.year, sm.smiley
-			), wordcount as (
-				select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.year, sw.word
-			), hours as (
-				select user_id \"user\", year, count(*) count from shouts s where $filter group by user_id, year
-			)
-					select j.year, j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
-						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
-					from (select year, count(s.id) count from shouts s where $filter group by year) j
-						left join
-						(
-							(select year, max(count) max from hours a group by year) b
-							left join hours c
-							on (b.year=c.year and b.max=c.count)
-						) on (j.year=b.year)
-						left join users u on (c.user=u.id)
-						left join
-						(
-							(select e.year, max(e.count) max
-								from smileycount e
-								group by e.year) d
-							left join smileycount f
-							on (d.year = f.year and d.max = f.count)
-						) on (j.year=d.year)
-						left join smilies sm on (f.smiley = sm.id)
-						left join
-						(
-							(select h.year, max(h.count) max
-								from wordcount h
-								group by h.year) g
-							left join wordcount i
-							on (g.year = i.year and g.max = i.count)
-						) on (j.year=g.year)
-						left join words w on (i.word = w.id)
-						order by j.year asc",
-			'params' => array_merge($params, $params, $params, $params),
+			'query' => "select extract(year from timestamp) as year, count(*) as shouts from message where $filter group by year order by year asc",
+			'params' => $params,
 			'processing_function' => 'messages_per_year',
 			'processing_function_all' => 'duplicates0',
-			'columns' => array('Year', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-			'column_styles' => array('left', 'right', 'left', 'left', 'left'),
+			'columns' => array('Year', 'Messages'),
+			'column_styles' => array('left', 'right'),
 			'derived_queries' => array(
 				array(
 					'title' => 'Messages per year, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_year',
 					'processing_function_all' => array('duplicates0', 'ex_aequo2'),
-					'columns' => array('Position', 'Year', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-					'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
+					'columns' => array('Position', 'Year', 'Messages'),
+					'column_styles' => array('right', 'left', 'right'),
 				),
 			),
 		);
 }
-$queries[] = array(
-		'title' => 'Smiley usage',
-		'query' => "with smileycount as (
-				select s.user_id \"user\", ss.smiley, sum(count) count
-					from shouts s join shout_smilies ss on (s.primary_id=ss.shout)
-					where $filter 
-					group by s.user_id, ss.smiley
-			)
-				select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
-				from
-					(select smiley, coalesce(sum(count), 0) count
-						from smileycount
-						group by smiley) d
-				left join
-					(
-						(select a.smiley, max(count) max
-							from smileycount a
-							group by a.smiley) b
-					left join smileycount c
-					on (b.smiley=c.smiley and b.max=c.count))
-				on (d.smiley=b.smiley)
-				left join users u on (c.user=u.id)
-				left join smilies sm on (d.smiley=sm.id)
-				order by d.count desc, sm.filename asc",
-		'params' => $params,
-		'processing_function' => function(&$row) {
-				global $smilies;
-
-				if(!isset($smilies)) {
-					$query = 'SELECT id, filename FROM smilies';
-					$smilies = db_query($query, array());
-				}
-
-				foreach($smilies as $smiley) {
-					if($smiley['filename'] == $row[0]['filename']) {
-						$smiley_id = $smiley['id'];
-						break;
-					}
-				}
-
-				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
-
-				$top = explode('$$', $row[0]['top']);
-				$user_id = $top[0];
-				$username = $top[1];
-				$frequency = $top[2];
-				$link = 'details.php?user=' . urlencode($username);
-				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
-			},
-		'processing_function_all' => array('duplicates0', 'insert_position'),
-		'columns' => array('Position', 'Smiley', 'Occurrences', 'Top user'),
-		'column_styles' => array('right', 'right', 'right', 'left'),
-	);
-$queries[] = array(
-		'title' => 'Word usage (top 100)',
-		'query' => "with wordcount as (
-			select s.user_id \"user\", sw.word, sum(count) count
-				from shouts s join shout_words sw on (s.primary_id=sw.shout)
-				where $filter
-				group by s.user_id, sw.word
-		)
-				select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
-				from 
-					(select word, coalesce(sum(count), 0) count
-						from wordcount
-						group by word
-						order by count desc
-						limit 100) d
-				left join
-					(
-						(select a.word, max(count) max
-							from wordcount a
-							group by a.word) b
-					left join wordcount c
-					on (b.word=c.word and b.max=c.count))
-				on (d.word=b.word)
-				left join users u on (c.user=u.id)
-				join words w on (d.word=w.id)
-				order by d.count desc, w.word asc",
-		'params' => $params,
-		'processing_function' => array(function(&$row) {
-				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
-
-				$top = explode('$$', $row[0]['top']);
-				$user_id = $top[0];
-				$username = $top[1];
-				$frequency = $top[2];
-				$link = 'details.php?user=' . urlencode($username);
-				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
-			}),
-		'processing_function_all' => array('duplicates0', 'insert_position'),
-		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
-		'column_styles' => array('right', 'left', 'right', 'left'),
-	);
-if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST['user'])) {
-	$queries[] = array(
-			'title' => "Ego points",
-			'query' => "SELECT u.id AS id, s.message AS message
-				FROM shouts s
-					JOIN users u ON (s.user_id = u.id)
-				WHERE s.deleted = 0
-					AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
-					AND $filter
-				ORDER BY s.id ASC",
-			'params' => $params,
-			'processing_function_all' => array(function(&$data) {
-					$result = calculate_ego($data[0]);
-					$user_egos = $result['user_egos'];
-
-					$datax = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
-							FROM users u
-								JOIN user_categories c ON (u.category = c.id)');
-					$users = array();
-					foreach($datax as $row) {
-						if($row['color'] == '-') {
-							$row['color'] = 'user';
-						}
-						$users[$row['id']] = $row;
-					}
-
-					while(count($data[0]) > 0) {
-						array_shift($data[0]);
-					}
-					$pos = 0;
-					foreach($user_egos as $id => $ego) {
-						$data[0][] = array(
-							++$pos,
-							'<a href="./?text=ego&amp;user=' . urlencode($users[$id]['name']) . '&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on" class="' . $users[$id]['color'] . '">' . $users[$id]['name'] . '</a>',
-							$ego
-						);
-					}
-				}),
-			'columns' => array('Position', 'User', 'Ego'),
-			'column_styles' => array('right', 'left', 'right'),
-			'cached' => false,
-			'note' => 'For details about how ego points are calculated, please refer to the <a href="ego.php">global list of ego points</a>.',
-		);
-}
-$queries[] = array(
-		'title' => 'First and last posts',
-		'query' => "SELECT u.name, TO_CHAR(MIN(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') min_date, TO_CHAR(MAX(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') max_date, EXTRACT(EPOCH FROM (MAX(s.date)-MIN(s.date))) duration
-				FROM users u
-					JOIN shouts s ON (u.id=s.user_id)
-				WHERE s.deleted = 0
-					AND $filter
-				GROUP BY u.id, u.name
-				ORDER BY duration DESC",
-		'params' => $params,
-		'processing_function' => array('add_user_link', function(&$row) {
-			if($row[0]['duration'] >= 86400*2) {
-				$row[0]['duration'] = floor($row[0]['duration']/86400) . ' Tage';
-			}
-			else if($row[0]['duration'] >= 86400) {
-				$row[0]['duration'] = 'ein Tag';
-			}
-			else if($row[0]['duration'] >= 7200) {
-				$row[0]['duration'] = floor($row[0]['duration']/3600) . ' Stunden';
-			}
-			else if($row[0]['duration'] >= 3600) {
-				$row[0]['duration'] = 'eine Stunde';
-			}
-			else if($row[0]['duration'] >= 120) {
-				$row[0]['duration'] = floor($row[0]['duration']/60) . ' Minuten';
-			}
-			else if($row[0]['duration'] >= 60) {
-				$row[0]['duration'] = 'eine Minute';
-			}
-			else {
-				$row[0]['duration'] = '-';
-			}
-		}),
-		'processing_function_all' => array('insert_position', 'ex_aequo4'),
-		'columns' => array('Position', 'Username', 'First message', 'Last message', 'Time difference'),
-		'column_styles' => array('right', 'left', 'left', 'left', 'right'),
-	);
- */
 /*
 $queries[] = array(
 		'title' => '',
