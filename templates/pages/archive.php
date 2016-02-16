@@ -188,6 +188,7 @@ function tab_disabled() {
 <body>
 	<h1><a href="index.php">#chatbox archive</a></h1>
 	<div>
+		<a href="details.php" style="white-space: nowrap;">Spam overview</a>
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
