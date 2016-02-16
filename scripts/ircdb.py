@@ -48,11 +48,10 @@ def extract_timestamp(line, date_string):
 
 
 def get_random_color():
-    available_colors = [ '00cc00', '0066b3', 'ff8000', 'ffcc00', '330099', '990099', 'ccff00',
-                         'ff0000', '808080', '008f00', '00487d', 'b35a00', 'b38f00', '6b006b',
-                         '8fb300', 'b30000', 'bebebe', '80ff80', '80c9ff', 'ffc080', 'ffe680',
-                         'aa80ff', 'ee00cc', 'ff8080', '666600', 'ffbfff', '00ffcc', 'cc6699',
-                         '999900' ]
+    available_colors = [ '22ff22', '0022ff', 'ff0000', '00aaaa', 'ff00ff', 'ffa500', 'cc0000',
+                         'cc0000', '0000cc', '0080c0', '8080c0', 'ff0080', '800080', '688e23',
+                         '408800', '808000', '000000', '00ff00', '0080ff', 'ff8000', '800000',
+                         'fb31fb' ]
 
     return random.choice(available_colors)
 
