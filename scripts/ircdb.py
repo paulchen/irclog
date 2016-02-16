@@ -57,12 +57,16 @@ def get_random_color():
 
 
 def extract_nickname(line):
-    nickname_pattern = r'^[^ ]+ <.([^>]+)>'
+    nickname_pattern = r'^[^ ]+ <(.)([^>]+)>'
     match = re.match(nickname_pattern, line)
     if match is None:
-        return None
+        return ('', None)
 
-    username = match.group(1)
+    user_flag = match.group(1)
+    if user_flag == ' ':
+        user_flag = ''
+
+    username = match.group(2)
     cur = conn.cursor()
     cur.execute("""SELECT user_pk FROM "user" WHERE username = %s""", (username, ))
     row = cur.fetchone()
@@ -73,7 +77,7 @@ def extract_nickname(line):
         user_id = row[0]
 
     cur.close()
-    return user_id
+    return (user_flag, user_id)
 
 
 def extract_text(line):
@@ -108,13 +112,13 @@ def process_file(filename, short_name):
         for line in f:
             if line_number > max_line:
                 timestamp = extract_timestamp(line, date_string)
-                user_id = extract_nickname(line)
+                (user_flag, user_id) = extract_nickname(line)
                 text = extract_text(line)
 
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text) VALUES (%s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag))
                     messages_added += 1
 
             line_number += 1
