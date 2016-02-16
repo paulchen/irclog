@@ -20,6 +20,10 @@ except:
 cur = conn.cursor()
 cur.execute("""TRUNCATE TABLE message""")
 
+cur.execute("""TRUNCATE TABLE "user" CASCADE""")
+
+cur.execute("""ALTER SEQUENCE user_user_pk_seq RESTART""")
+
 cur.execute("""ALTER SEQUENCE message_message_pk_seq RESTART""")
 
 conn.commit()
