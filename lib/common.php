@@ -207,6 +207,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	if($last_shown_id != -1) {
 		$count_query = "SELECT COUNT(*) anzahl
 				FROM message m
+					LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 				WHERE $filter AND m.message_pk > ?";
 		$count_params = $params;
 		$count_params[] = $last_shown_id;
@@ -216,7 +217,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text, u.color
 			FROM message m
-				JOIN \"user\" u ON (m.user_fk = u.user_pk)
+				LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
 			ORDER BY m.message_pk DESC
 			OFFSET ? LIMIT ?";
