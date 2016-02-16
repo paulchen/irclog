@@ -126,18 +126,18 @@ if(isset($_REQUEST['hour'])) {
 	$what_parts[] = "hour $hour";
 }
 if(isset($_REQUEST['year'])) {
-	$filter_parts[] = 'year = ?';
+	$filter_parts[] = 'extract(year from timestamp) = ?';
 	$params[] = $_REQUEST['year'];
 	$what_parts[] = $_REQUEST['year'];
 }
 if(isset($_REQUEST['month'])) {
-	$filter_parts[] = 'month = ?';
+	$filter_parts[] = 'extract(month from timestamp) = ?';
 	$params[] = $_REQUEST['month'];
 	array_pop($what_parts);
 	$what_parts[] = $_REQUEST['year'] . '-' . $_REQUEST['month'];
 }
 if(isset($_REQUEST['day'])) {
-	$filter_parts[] = 'day = ?';
+	$filter_parts[] = 'extract(day from timestamp) = ?';
 	$params[] = $_REQUEST['day'];
 	array_pop($what_parts);
 	$what_parts[] = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
@@ -160,7 +160,7 @@ $queries[] = array(
 				where $filter
 				group by u.user_pk, u.username
 				order by count(*) desc",
-		'params' => array_merge($params),
+		'params' => $params,
 		'processing_function' => array('add_user_link'),
 		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages'),
@@ -172,7 +172,7 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "select extract(hour from timestamp) as hour, count(*) as shouts from message m where $filter group by hour order by hour asc",
-		'params' => array_merge($params),
+		'params' => $params,
 		'processing_function' => 'messages_per_hour',
 		'processing_function_all' => 'duplicates0',
 		'columns' => array('Hour', 'Messages'),
@@ -188,58 +188,22 @@ $queries[] = array(
 			),
 		),
 	);
-/*
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "with smileycount as (
-				select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.day, s.month, s.year, sm.smiley
-			), wordcount as (
-				select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.day, s.month, s.year, sw.word
-			), hours as (
-				select user_id \"user\", day, month, year, count(*) count from shouts s where $filter group by user_id, day, month, year
-			)
-				select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
-                                        concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
-                                from (select day, month, year, count(s.id) count from shouts s where $filter group by day, month, year order by count desc limit 10) j
-                                        left join
-                                        (
-						(select day, month, year, max(count) max from hours a group by day, month, year) b
-                                                left join hours c
-                                                on (b.day=c.day and b.month=c.month and b.year=c.year and b.max=c.count)
-                                        ) on (j.day=b.day and j.month=b.month and j.year=b.year)
-                                        left join users u on (c.user=u.id)
-                                        left join
-                                        (
-						(select e.day, e.month, e.year, max(e.count) max
-							from smileycount e
-                                                        group by e.day, e.month, e.year) d
-                                                left join smileycount f
-                                                on (d.day = f.day and d.month = f.month and d.year = f.year and d.max = f.count)
-                                        ) on (j.day=d.day and j.month=d.month and j.year=d.year)
-                                        left join smilies sm on (f.smiley = sm.id)
-                                        left join
-                                        (
-						(select h.day, h.month, h.year, max(h.count) max
-							from wordcount h
-                                                        group by h.day, h.month, h.year) g
-                                                left join wordcount i
-                                                on (g.day = i.day and g.month = i.month and g.year = i.year and g.max = i.count)
-                                        ) on (j.day=g.day and j.month=g.month and j.year=g.year)
-                                        left join words w on (i.word = w.id)
-                                        order by j.count desc, j.year asc, j.month asc, j.day asc",
-		'params' => array_merge($params, $params, $params, $params),
+		'query' => "select to_char(timestamp, 'YYYY-MM-DD') as day, count(*) as shouts from message where $filter group by day order by count(*) desc limit 10",
+		'params' => $params,
 		'processing_function' => function(&$row) {
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
 				$month = $parts[1];
 				$day = $parts[2];
 				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row[0]['day'] . '</a>';
-				spammer_smiley($row);
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
-		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-		'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
+		'columns' => array('Position', 'Day', 'Messages'),
+		'column_styles' => array('right', 'left', 'right'),
 	);
+/*
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
