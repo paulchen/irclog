@@ -254,6 +254,13 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}
+
+		$link = '?user=' . urlencode($row['username']) . "&amp;limit=$limit";
+		if($text != '') {
+			$link .= '&amp;text=' . urlencode($text);
+		}
+		$row['user_link'] = $link;
+
 		$data[$row['message_pk']] = $row;
 	}
 	db_stmt_close($result);
@@ -266,7 +273,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$total_shouts = get_setting('visible_shouts');
 
 	if($filter != $default_filter) {
-		$query = "SELECT COUNT(*) shouts FROM message m WHERE $filter";
+		$query = "SELECT COUNT(*) shouts FROM message m LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk) WHERE $filter";
 
 		// limit and offset
 		array_pop($params);

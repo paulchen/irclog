@@ -214,7 +214,7 @@ endif; /* if(!$ajax) */ ?>
 				<?php foreach($messages as $message): ?>
 					<tr>
 						<td class="date"><a id="message<?php echo $message['message_pk'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['message_pk'] ?>"><?php echo $message['timestamp'] ?></a></td>
-						<td class="user" style="color: #<?php echo $message['color'] ?>"><?php echo $message['username'] ?></td>
+						<td class="user"><a style="color: #<?php echo $message['color'] ?>" href="<?php echo $message['user_link'] ?>"><?php echo $message['username'] ?></a></td>
 						<td class="message">
 							<?php if($message['username'] == ''): ?>
 								<span class="servicemsg"><?php echo $message['text'] ?></span>
