@@ -184,6 +184,23 @@ function set_setting($key, $value) {
 	db_query($query, array($key, $value));
 }
 
+function insert_smileys($input) {
+	$output = $input;
+
+	$query = "select sc.code, s.filename, s.meaning from smiley_codes sc join smilies s on (sc.smiley = s.id)";
+	$result = db_query($query);
+	foreach($result as $row) {
+		$code = $row['code'];
+		$filename = $row['filename'];
+		$meaning = htmlentities($row['meaning'], ENT_QUOTES, 'UTF-8');
+
+		$html = "<img src='images/smilies/$filename' alt='$meaning' />";
+		$output = str_replace($code, $html, $output);
+	}
+
+	return $output;
+}
+
 function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
 	$default_filter = 'deleted = false';
 
@@ -229,6 +246,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
 		$row['text'] = linkify($row['text']);
+		$row['text'] = insert_smileys($row['text']);
 		$data[$row['message_pk']] = $row;
 	}
 	db_stmt_close($result);
