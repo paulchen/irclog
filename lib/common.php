@@ -21,7 +21,6 @@ $email_from = $settings['email']['email_from'];
 $refresh_time = $settings['web']['refresh_time'];
 
 /* HTTP basic authentication */
-/* TODO
 if(!defined('STDIN') && !isset($argc)) {
 	if(!isset($_SERVER['PHP_AUTH_USER'])) {
 		noauth();
@@ -41,7 +40,6 @@ if(!defined('STDIN') && !isset($argc)) {
 		noauth();
 	}
 }
- */
 
 $memcached = new Memcached();
 $memcached->addServer('127.0.0.1', '11211');

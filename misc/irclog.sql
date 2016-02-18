@@ -26,3 +26,10 @@ CREATE TABLE settings (
     primary key (key)
 );
 
+CREATE TABLE accounts (
+    id serial NOT NULL,
+    username text NOT NULL,
+    hash text NOT NULL,
+    primary key (id)
+);
+
