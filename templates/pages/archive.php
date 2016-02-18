@@ -7,7 +7,7 @@ if(!$ajax):
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-	<title>Chatbox archive</title>
+	<title>#chatbox archive</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style type="text/css">
 	body { font-family: Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 13px; }
