@@ -182,18 +182,35 @@ function set_setting($key, $value) {
 	db_query($query, array($key, $value));
 }
 
-function insert_smileys($input) {
+function insert_smileys1($input) {
 	$output = $input;
 
-	$query = "select sc.code, s.filename, s.meaning from smiley_codes sc join smilies s on (sc.smiley = s.id)";
+	// TODO enormous number of unnecessary queries
+	$query = "select s.id, sc.code, s.filename, s.meaning from smiley_codes sc join smilies s on (sc.smiley = s.id)";
 	$result = db_query($query);
 	foreach($result as $row) {
 		$code = $row['code'];
+		$id = $row['id'];
+
+		$output = str_replace($code, "XXSMILEY_${id}XX", $output);
+	}
+
+	return $output;
+}
+
+function insert_smileys2($input) {
+	$output = $input;
+
+	// TODO enormous number of unnecessary queries
+	$query = "select s.id, s.filename, s.meaning from smilies s";
+	$result = db_query($query);
+	foreach($result as $row) {
+		$id = $row['id'];
 		$filename = $row['filename'];
 		$meaning = htmlentities($row['meaning'], ENT_QUOTES, 'UTF-8');
 
 		$html = "<img src='images/smilies/$filename' alt='$meaning' />";
-		$output = str_replace($code, $html, $output);
+		$output = str_replace("XXSMILEY_${id}XX", $html, $output);
 	}
 
 	return $output;
@@ -246,9 +263,10 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			$row['text'] = $row['html'];
 		}
 		else {
+			$row['text'] = insert_smileys1($row['text']);
 			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
 			$row['text'] = linkify($row['text']);
-			$row['text'] = insert_smileys($row['text']);
+			$row['text'] = insert_smileys2($row['text']);
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}
