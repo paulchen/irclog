@@ -212,12 +212,16 @@ function tab_disabled() {
 	echo '$$';
 endif; /* if(!$ajax) */ ?>
 			<table style="border-collapse: collapse; width: 100%;">
-				<?php foreach($messages as $message): ?>
+				<?php foreach($messages as $message_id => $message): $user = ($message['user_pk'] == null) ? null : $user_details[$message['user_pk']]; ?>
 					<tr>
-						<td class="date"><a id="message<?php echo $message['message_pk'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['message_pk'] ?>"><?php echo $message['timestamp'] ?></a></td>
-						<td class="user"><a style="color: #<?php echo $message['color'] ?>" href="<?php echo $message['user_link'] ?>"><?php echo $message['username'] ?></a></td>
+						<td class="date"><a id="message<?php echo $message_id ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message_id ?>"><?php echo $message['timestamp'] ?></a></td>
+						<td class="user">
+							<?php if($user != null): ?>
+								<a style="color: #<?php echo $user['color'] ?>" href="<?php echo $user['link'] ?>"><?php echo $user['username'] ?></a>
+							<?php endif; ?>
+						</td>
 						<td class="message">
-							<?php if($message['username'] == ''): ?>
+							<?php if($user == null): ?>
 								<span class="servicemsg"><?php echo $message['text'] ?></span>
 							<?php else: ?>
 								<?php echo $message['text'] ?>

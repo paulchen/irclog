@@ -55,6 +55,7 @@ if(isset($_GET['last_shown_id']) && preg_match('/^[0-9]+$/', $_GET['last_shown_i
 
 $message_data = get_messages($text, $user, $date, $offset, $limit, $last_shown_id);
 $messages = $message_data['messages'];
+$user_details = $message_data['users'];
 $filtered_shouts = $message_data['filtered_shouts'];
 $total_shouts = $message_data['total_shouts'];
 $page_count = $message_data['page_count'];

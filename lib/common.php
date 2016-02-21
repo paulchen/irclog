@@ -247,7 +247,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$new_messages = $count_data[0]['anzahl'];
 	}
 
-	$query = "SELECT m.message_pk, m.timestamp, u.username, m.raw_text, m.text, m.html, u.color
+	$query = "SELECT m.message_pk, m.timestamp, u.username, m.text, m.html, u.color, u.user_pk
 			FROM message m
 				LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
@@ -258,6 +258,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$result = db_query_resultset($query, $params);
 
 	$data = array();
+	$users = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		if($row['html'] != '') {
 			$row['text'] = $row['html'];
@@ -270,14 +271,29 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}
+		unset($row['html']);
 
 		$link = '?user=' . urlencode($row['username']) . "&amp;limit=$limit";
 		if($text != '') {
 			$link .= '&amp;text=' . urlencode($text);
 		}
-		$row['user_link'] = $link;
 
-		$data[$row['message_pk']] = $row;
+		$message_pk = $row['message_pk'];
+		unset($row['message_pk']);
+
+		$user_pk = $row['user_pk'];
+		$username = $row['username'];
+		$color = $row['color'];
+
+		unset($row['username']);
+		unset($row['color']);
+		unset($row['user_link']);
+
+		$data[$message_pk] = $row;
+
+		if($username != '') {
+			$users[$user_pk] = array('username' => $username, 'color' => $color, 'link' => $link);
+		}
 	}
 	db_stmt_close($result);
 
@@ -305,8 +321,12 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$page_count = ceil($filtered_shouts/$limit);
 
+	echo memory_get_peak_usage() . "\n";
+	die();
+
 	return array(
 		'messages' => $data,
+		'users' => $users,
 		'filtered_shouts' => $filtered_shouts,
 		'total_shouts' => $total_shouts,
 		'page_count' => $page_count,
