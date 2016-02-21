@@ -321,9 +321,6 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$page_count = ceil($filtered_shouts/$limit);
 
-	echo memory_get_peak_usage() . "\n";
-	die();
-
 	return array(
 		'messages' => $data,
 		'users' => $users,
