@@ -216,14 +216,14 @@ function insert_smileys2($input) {
 	return $output;
 }
 
-function colorize_nick($text, $nick, $color) {
+function colorize_nick($text, $nick, $color, $user_link) {
 	if($nick == '' || $color == '') {
 		return $text;
 	}
 
 	$pos = strpos($text, $nick);
 	if ($pos !== false) {
-		$replacement = '<span style="color: #' . $color . ';">' . $nick . '</span>';
+		$replacement = '<a style="color: #' . $color . ';" href="' . $user_link . '">' . $nick . '</a>';
 		$text = substr_replace($text, $replacement, $pos, strlen($nick));
 	}
 
@@ -274,6 +274,11 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$data = array();
 	$users = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
+		$link = '?user=' . urlencode($row['username']) . "&amp;limit=$limit";
+		if($text != '') {
+			$link .= '&amp;text=' . urlencode($text);
+		}
+
 		if($row['html'] != '') {
 			$row['text'] = $row['html'];
 		}
@@ -282,16 +287,11 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
 			$row['text'] = linkify($row['text']);
 			$row['text'] = insert_smileys2($row['text']);
-			$row['text'] = colorize_nick($row['text'], $row['username'], $row['color']);
+			$row['text'] = colorize_nick($row['text'], $row['username'], $row['color'], $link);
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}
 		unset($row['html']);
-
-		$link = '?user=' . urlencode($row['username']) . "&amp;limit=$limit";
-		if($text != '') {
-			$link .= '&amp;text=' . urlencode($text);
-		}
 
 		$message_pk = $row['message_pk'];
 		unset($row['message_pk']);
