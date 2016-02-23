@@ -287,7 +287,9 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
 			$row['text'] = linkify($row['text']);
 			$row['text'] = insert_smileys2($row['text']);
-			$row['text'] = colorize_nick($row['text'], $row['username'], $row['color'], $link);
+			if($row['type'] > 0) {
+				$row['text'] = colorize_nick($row['text'], $row['username'], $row['color'], $link);
+			}
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}
