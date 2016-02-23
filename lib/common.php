@@ -216,6 +216,20 @@ function insert_smileys2($input) {
 	return $output;
 }
 
+function colorize_nick($text, $nick, $color) {
+	if($nick == '' || $color == '') {
+		return $text;
+	}
+
+	$pos = strpos($text, $nick);
+	if ($pos !== false) {
+		$replacement = '<span style="color: #' . $color . ';">' . $nick . '</span>';
+		$text = substr_replace($text, $replacement, $pos, strlen($nick));
+	}
+
+	return $text;
+}
+
 function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
 	$default_filter = 'deleted = false';
 
@@ -247,7 +261,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$new_messages = $count_data[0]['anzahl'];
 	}
 
-	$query = "SELECT m.message_pk, m.timestamp, u.username, m.text, m.html, u.color, u.user_pk
+	$query = "SELECT m.message_pk, m.timestamp, u.username, m.text, m.html, u.color, u.user_pk, m.type
 			FROM message m
 				LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
@@ -268,6 +282,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
 			$row['text'] = linkify($row['text']);
 			$row['text'] = insert_smileys2($row['text']);
+			$row['text'] = colorize_nick($row['text'], $row['username'], $row['color']);
 
 			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
 		}

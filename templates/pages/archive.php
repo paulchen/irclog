@@ -216,12 +216,12 @@ endif; /* if(!$ajax) */ ?>
 					<tr>
 						<td class="date"><a id="message<?php echo $message_id ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message_id ?>"><?php echo $message['timestamp'] ?></a></td>
 						<td class="user">
-							<?php if($user != null): ?>
+							<?php if($message['type'] == 0): ?>
 								<a style="color: #<?php echo $user['color'] ?>" href="<?php echo $user['link'] ?>"><?php echo $user['username'] ?></a>
 							<?php endif; ?>
 						</td>
 						<td class="message">
-							<?php if($user == null): ?>
+							<?php if($message['type'] != 0): ?>
 								<span class="servicemsg"><?php echo $message['text'] ?></span>
 							<?php else: ?>
 								<?php echo $message['text'] ?>

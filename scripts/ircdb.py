@@ -56,17 +56,7 @@ def get_random_color():
     return random.choice(available_colors)
 
 
-def extract_nickname(line):
-    nickname_pattern = r'^[^ ]+ <(.)([^>]+)>'
-    match = re.match(nickname_pattern, line)
-    if match is None:
-        return ('', None)
-
-    user_flag = match.group(1)
-    if user_flag == ' ':
-        user_flag = ''
-
-    username = match.group(2)
+def get_user(username):
     cur = conn.cursor()
     cur.execute("""SELECT user_pk FROM "user" WHERE username = %s""", (username, ))
     row = cur.fetchone()
@@ -75,9 +65,70 @@ def extract_nickname(line):
         user_id = cur.fetchone()[0]
     else:
         user_id = row[0]
-
     cur.close()
-    return (user_flag, user_id)
+    return user_id
+
+
+def extract_nickname(line):
+    message_pattern = r'^[^ ]+ <(.)([^>]+)>'
+    match = re.match(message_pattern, line)
+    if match is not None:
+        user_flag = match.group(1)
+        if user_flag == ' ':
+            user_flag = ''
+
+        user_id = get_user(match.group(2))
+
+        return (user_flag, user_id, 0)
+
+    modechange_pattern = r'^.*-!- mode/.*by ([^ ]+)'
+    match = re.match(modechange_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 1)
+
+    other_servicemsg_pattern = r'^.*-!- ([^ ]+) \['
+    match = re.match(other_servicemsg_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 2)
+
+    action_pattern = r'^[^ ]+  \* ([^ ]+) '
+    match = re.match(action_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 3)
+
+    nickchange_pattern = r'^[^ ]+ -!- ([^ ]+) is now known as'
+    match = re.match(nickchange_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 4)
+
+    topicchange_pattern = r'^[^ ]+ -!- ([^ ]+) changed the topic of'
+    match = re.match(topicchange_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 5)
+
+    kicked_pattern = r'^[^ ]+ -!- ([^ ]+) was kicked from'
+    match = re.match(kicked_pattern, line)
+    if match is not None:
+        user_id = get_user(match.group(1))
+
+        return ('', user_id, 6)
+
+    irssi_pattern = r'^[^ ]+ -!- Irssi:'
+    match = re.match(irssi_pattern, line)
+    if match is not None:
+        return ('', None, 7)
+
+    return ('', None, -1)
 
 
 def extract_text(line):
@@ -112,13 +163,13 @@ def process_file(filename, short_name):
         for line in f:
             if line_number > max_line:
                 timestamp = extract_timestamp(line, date_string)
-                (user_flag, user_id) = extract_nickname(line)
+                (user_flag, user_id, message_type) = extract_nickname(line)
                 text = extract_text(line)
 
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag, type) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag))
                     messages_added += 1
 
             line_number += 1

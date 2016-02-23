@@ -16,6 +16,7 @@ CREATE TABLE message (
     deleted bool NOT NULL DEFAULT false,
     user_flag varchar(1) not null default '',
     html text,
+    "type" integer not null default -1,
     primary key (message_pk),
     foreign key (user_fk) references "user" (user_pk)
 );
