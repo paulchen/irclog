@@ -169,7 +169,7 @@ def process_file(filename, short_name):
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag, type) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag, type) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag, message_type))
                     messages_added += 1
 
             line_number += 1
