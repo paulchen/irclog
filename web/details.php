@@ -162,7 +162,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select to_char(timestamp, 'YYYY-MM-DD') as day, count(*) as shouts from message where $filter group by day order by count(*) desc limit 10",
+		'query' => "select to_char(timestamp, 'YYYY-MM-DD') as day, count(*) as shouts from message m where $filter group by day order by count(*) desc limit 10",
 		'params' => $params,
 		'processing_function' => function(&$row) {
 				$parts = explode('-', $row[0]['day']);
@@ -178,7 +178,7 @@ $queries[] = array(
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "select to_char(timestamp, 'YYYY-MM') as month, count(*) as shouts from message where $filter group by month order by month asc",
+			'query' => "select to_char(timestamp, 'YYYY-MM') as month, count(*) as shouts from message m where $filter group by month order by month asc",
 			'params' => $params,
 			'processing_function' => 'messages_per_month',
 			'processing_function_all' => 'duplicates0',
@@ -199,7 +199,7 @@ if(!isset($_REQUEST['day'])) {
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
-			'query' => "select extract(year from timestamp) as year, count(*) as shouts from message where $filter group by year order by year asc",
+			'query' => "select extract(year from timestamp) as year, count(*) as shouts from message m where $filter group by year order by year asc",
 			'params' => $params,
 			'processing_function' => 'messages_per_year',
 			'processing_function_all' => 'duplicates0',
