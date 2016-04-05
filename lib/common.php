@@ -284,7 +284,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		}
 		else {
 			$row['text'] = insert_smileys1($row['text']);
-			$row['text'] = htmlentities($row['text'], ENT_QUOTES, 'UTF-8');
+			$row['text'] = htmlspecialchars($row['text'], ENT_COMPAT, 'UTF-8');
 			$row['text'] = linkify($row['text']);
 			$row['text'] = insert_smileys2($row['text']);
 			if($row['type'] > 0) {
