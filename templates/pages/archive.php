@@ -10,11 +10,14 @@ if(!$ajax):
 	<title>#chatbox archive</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style type="text/css">
-	body { font-family: Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 13px; }
+	@font-face { font-family: 'Noto Color Emoji'; src: url('css/NotoColorEmoji.ttf'); }
+	@font-face { font-family: 'Noto Sans UI'; src: url('css/NotoSansUI-Regular.ttf'); }
+	@font-face { font-family: 'Noto Sans UI Bold'; src: url('css/NotoSansUI-Bold.ttf'); }
+	body { font-family: 'Noto Sans UI', 'Noto Color Emoji', Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 14px; } 
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
-	h1 > a { color: black; }
+	h1 > a { font-family: 'Noto Sans UI Bold', Tahoma, Calibri, Verdana, Geneva, sans-serif; color: black; font-size: 32px; }
 	a.user, span.user { color: #417394; }
 	a.purple, span.purple { color: purple; font-weight: bold; }
 	a.green, span.green { color: green; font-weight: bold; }
