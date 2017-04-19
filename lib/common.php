@@ -230,11 +230,9 @@ function colorize_nick($text, $nick, $color, $user_link) {
 	return $text;
 }
 
-function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
-	$default_filter = 'deleted = false';
-
-	$filters = array($default_filter);
-	$params = array();
+function get_messages($channel = '', $text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
+	$filters = array('deleted = false', 'c.name = ?');
+	$params = array($channel);
 	if($text != '') {
 		$filters[] = 'm.text ILIKE ?';
 		$params[] = "%$text%";
@@ -253,6 +251,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	if($last_shown_id != -1) {
 		$count_query = "SELECT COUNT(*) anzahl
 				FROM message m
+					JOIN channel c ON (m.channel_fk = c.channel_pk)
 					LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 				WHERE $filter AND m.message_pk > ?";
 		$count_params = $params;
@@ -263,6 +262,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$query = "SELECT m.message_pk, m.timestamp, u.username, m.text, m.html, u.color, u.user_pk, m.type
 			FROM message m
+				JOIN channel c ON (m.channel_fk = c.channel_pk)
 				LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
 			WHERE $filter
 			ORDER BY m.message_pk DESC
@@ -274,7 +274,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$data = array();
 	$users = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		$link = '?user=' . urlencode($row['username']) . "&amp;limit=$limit";
+		$link = '?channel=' . urlencode($channel) . '&amp;user=' . urlencode($row['username']) . "&amp;limit=$limit";
 		if($text != '') {
 			$link .= '&amp;text=' . urlencode($text);
 		}
@@ -321,10 +321,17 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	}
 	 */
 
-	$total_shouts = get_setting('visible_shouts');
+	$query = 'SELECT visible_shouts FROM channel WHERE name = ?';
+	$result = db_query($query, array($channel));
+
+	$total_shouts = $result[0]['visible_shouts'];
 
 	if($filter != $default_filter) {
-		$query = "SELECT COUNT(*) shouts FROM message m LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk) WHERE $filter";
+		$query = "SELECT COUNT(*) shouts
+				FROM message m
+					JOIN channel c ON (m.channel_fk = c.channel_pk)
+					LEFT JOIN \"user\" u ON (m.user_fk = u.user_pk)
+				WHERE $filter";
 
 		// limit and offset
 		array_pop($params);
