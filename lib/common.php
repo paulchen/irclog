@@ -95,7 +95,7 @@ function db_error($error, $stacktrace, $query, $parameters) {
 	global $report_email, $email_from;
 
 	header('HTTP/1.1 500 Internal Server Error');
-	echo "A database error has just occurred. Please don't freak out, the administrator has already been notified.\n";
+	echo "A database error has just occurred. Please freak out, the administrator has already been notified.\n";
 
 	$params = array(
 			'ERROR' => $error,
