@@ -189,7 +189,16 @@ function tab_disabled() {
 	</script>
 </head>
 <body>
-	<h1><a href="index.php">#chatbox archive</a></h1>
+<h1><a href="index.php">#<?php echo htmlentities($channel, ENT_QUOTES, 'UTF-8') ?> archive</a></h1>
+	<div style="padding-bottom: 2em;">
+		<?php foreach($channels as $channel_name): ?>
+			<?php if($channel_name == $channel): ?>
+				<strong>#<?php echo htmlentities($channel_name, ENT_QUOTES, 'UTF-8'); ?></strong>
+			<?php else: ?>
+				<a href="?channel=<?php echo urlencode($channel_name); ?>">#<?php echo htmlentities($channel_name, ENT_QUOTES, 'UTF-8'); ?></a>
+			<?php endif; ?>
+		<?php endforeach; ?>
+	</div>
 	<div>
 		<a href="details.php" style="white-space: nowrap;">Spam overview</a>
 		<fieldset><legend>Filters</legend>

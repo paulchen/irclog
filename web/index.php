@@ -111,6 +111,9 @@ if(!$ajax) {
 	else {
 		$users = $memcached_data;
 	}
+
+	$query = 'SELECT name FROM channel WHERE active = TRUE ORDER BY channel_pk ASC';
+	$channels = array_map(function($a) { return $a['name']; }, db_query($query));
 }
 
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
