@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 
-import os, psycopg2, time, sys, re, fcntl, logging, configparser, random
+import os, psycopg2, psycopg2.extras, time, sys, re, fcntl, logging, configparser, random, datetime
 
 
 last_update = 0
-directory = '/home/ircbot/.irssi/logs/localhost/#chatbox'
-timestamp_file = os.path.dirname(os.path.realpath(__file__)) + '/../tmp/update'
 logfile = os.path.dirname(os.path.realpath(__file__)) + '/../log/update.log'
 config_file = os.path.dirname(os.path.realpath(__file__)) + '/../config.ini'
 
@@ -142,14 +140,14 @@ def extract_text(line):
     return match.group(1)
 
 
-def process_file(filename, short_name):
-    logger.debug('Processing file %s' % short_name)
+def process_file(filename, short_name, channel):
+    logger.debug('Processing file %s, channel #%s' % (short_name, channel['name']))
 
     match = re.match(filename_pattern, short_name)
     date_string = match.group(1)
 
     cur = conn.cursor()
-    cur.execute("SELECT COALESCE(MAX(line), 0) FROM message where source_file = %s", (short_name, ))
+    cur.execute("SELECT COALESCE(MAX(line), 0) FROM message where source_file = %s AND channel_fk = %s", (short_name, channel['channel_pk']))
     row = cur.fetchone()
     max_line = row[0]
     cur.close()
@@ -169,7 +167,7 @@ def process_file(filename, short_name):
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
 
-                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag, type) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag, message_type))
+                    cur.execute("""INSERT INTO message (source_file, line, timestamp, user_fk, raw_text, text, user_flag, type, channel_fk) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""", (short_name, line_number, timestamp, user_id, line, text, user_flag, message_type, channel['channel_pk']))
                     messages_added += 1
 
             line_number += 1
@@ -193,44 +191,45 @@ except:
     sys.exit(1)
 
 
-if not os.path.exists(timestamp_file):
-    last_update = 0
-else:
-    st = os.stat(timestamp_file)
-    last_update = st.st_mtime
+cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+cur.execute("""SELECT channel_pk, name, visible_shouts, last_update, directory FROM channel WHERE active = TRUE""")
+channels = cur.fetchall()
+cur.close()
 
-files = []
-for f in os.listdir(directory):
-    match = re.match(filename_pattern, f)
-    if match is not None:
+for channel in channels:
+    last_update = channel['last_update']
+    directory = channel['directory']
+
+    files = []
+    for f in os.listdir(directory):
+        match = re.match(filename_pattern, f)
+        if match is not None:
+            filename = os.path.join(directory, f)
+            st = os.stat(filename)
+            mtime = datetime.datetime.fromtimestamp(st.st_mtime)
+            if mtime > channel['last_update']:
+                files.append(f)
+
+    files.sort()
+
+    messages_added = 0
+    for f in files:
         filename = os.path.join(directory, f)
-        st = os.stat(filename)
-        mtime = st.st_mtime
-        if mtime > last_update:
-            files.append(f)
+        messages_added += process_file(filename, f, channel)
 
-files.sort()
-
-messages_added = 0
-for f in files:
-    filename = os.path.join(directory, f)
-    messages_added += process_file(filename, f)
-
-if messages_added > 0:
     cur = conn.cursor()
-    cur.execute("""SELECT COUNT(*) FROM message WHERE deleted = false""")
-    row = cur.fetchone()
-    total_messages = row[0]
+    total_messages = channel['visible_shouts']
+    if messages_added > 0:
+        cur.execute("""SELECT COUNT(*) FROM message WHERE deleted = false AND channel_fk = %s""", (channel['channel_pk'], ))
+        row = cur.fetchone()
+        total_messages = row[0]
 
-    cur.execute("""INSERT INTO SETTINGS (key, value) VALUES (%s, %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value""", ('visible_shouts', total_messages))
+    cur.execute("""UPDATE channel SET visible_shouts = %s, last_update = NOW() WHERE channel_pk = %s""", (total_messages, channel['channel_pk']))
 
     conn.commit()
     cur.close()
 
 conn.close()
-
-with open(timestamp_file, 'a'):
-    os.utime(timestamp_file, (start_time, start_time))
 
 logger.debug('Script successfully completed')
 

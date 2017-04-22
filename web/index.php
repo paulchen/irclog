@@ -19,12 +19,17 @@ if(isset($_GET['id'])) {
 		}
 	}
 
-	$query = 'SELECT COUNT(*) messages FROM message WHERE message_pk > ?';
-	$data = db_query($query, array($id));
+	$query = 'SELECT c.channel_pk, c.name FROM channel c, message m WHERE c.channel_pk = m.channel_fk AND m.message_pk = ?';
+	$result = db_query($query, array($id));
+	$channel = $result[0]['name'];
+	$channel_id = $result[0]['channel_pk'];
+
+	$query = 'SELECT COUNT(*) messages FROM message WHERE message_pk > ? AND channel_fk = ?';
+	$data = db_query($query, array($id, $channel_id));
 
 	$page = floor($data[0]['messages']/$limit)+1;
 
-	header("Location: ?limit=$limit&page=$page#message${id}");
+	header("Location: ?channel=$channel&limit=$limit&page=$page#message${id}");
 	die();
 }
 
@@ -53,7 +58,9 @@ if(isset($_GET['last_shown_id']) && preg_match('/^[0-9]+$/', $_GET['last_shown_i
 	$last_shown_id = $_GET['last_shown_id'];
 }
 
-$message_data = get_messages($text, $user, $date, $offset, $limit, $last_shown_id);
+$channel = isset($_GET['channel']) ? trim($_GET['channel']) : $settings['web']['default_channel'];
+
+$message_data = get_messages($channel, $text, $user, $date, $offset, $limit, $last_shown_id);
 $messages = $message_data['messages'];
 $user_details = $message_data['users'];
 $filtered_shouts = $message_data['filtered_shouts'];
@@ -62,7 +69,7 @@ $page_count = $message_data['page_count'];
 $last_loaded_id = $message_data['last_loaded_id'];
 $new_messages = $message_data['new_messages'];
 
-$link_parts = "?limit=$limit";
+$link_parts = '?channel=' . urlencode($channel) . "&amp;limit=$limit";
 if($text != '') {
 	$link_parts .= '&amp;text=' . urlencode($text);
 }
@@ -93,6 +100,7 @@ $last_link = "$link_parts&amp;page=$page_count";
 $generic_link = str_replace('&amp;', '&', "$link_parts&amp;page=");
 
 if(!$ajax) {
+	// TODO user list leaks into other channels
 	$memcached_key = "${memcached_prefix}_userlist";
 	$memcached_data = $memcached->get($memcached_key);
 	if($memcached_data == null) {
@@ -103,6 +111,9 @@ if(!$ajax) {
 	else {
 		$users = $memcached_data;
 	}
+
+	$query = 'SELECT name FROM channel WHERE active = TRUE ORDER BY channel_pk ASC';
+	$channels = array_map(function($a) { return $a['name']; }, db_query($query));
 }
 
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
