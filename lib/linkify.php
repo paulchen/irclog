@@ -48,12 +48,12 @@ function linkify($text) {
         )*                     # Unroll-the-loop (special normal*)*.
         [äöüßa-z0-9\-_~$()*+=\/#[\]@%]  # Last char can\'t be [.!&\',;:?]
       )                        # End $14. Other non-delimited URL.
-    /imx';
+    /imxu';
     $url_replace = '$1$4$7$10$13<a href="$2$5$8$11$14" target="_blank">$2$5$8$11$14</a>$3$6$9$12';
     return preg_replace($url_pattern, $url_replace, $text);
 }
 function linkify_html($text) {
-    $text = preg_replace('/&apos;/', '&#39;', $text); // IE does not handle &apos; entity!
+    $text = preg_replace('/&apos;/u', '&#39;', $text); // IE does not handle &apos; entity!
     $section_html_pattern = '%# Rev:20100913_0900 github.com/jmrware/LinkifyURL
     # Section text into HTML <A> tags  and everything else.
       (                              # $1: Everything not HTML <A> tag.
