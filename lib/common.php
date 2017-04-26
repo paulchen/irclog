@@ -326,7 +326,7 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 
 	$total_shouts = $result[0]['visible_shouts'];
 
-	if($filter != $default_filter) {
+	if(count($filters) > 2) {
 		$query = "SELECT COUNT(*) shouts
 				FROM message m
 					JOIN channel c ON (m.channel_fk = c.channel_pk)
