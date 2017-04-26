@@ -212,6 +212,7 @@ function tab_disabled() {
 		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="reset_form();" /></td></tr>
 		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr>
 		</table>
+		<input type="hidden" name="channel" value="<?php echo htmlentities($channel, ENT_QUOTES, 'UTF-8') ?>" />
 		</form>
 		</fieldset>
 		<div style="padding: 10px 5px 10px 5px;">
