@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, psycopg2, configparser, math, threading, subprocess
+import os, psycopg2, configparser, math, concurrent.futures, subprocess
 
 
 last_update = 0
@@ -31,24 +31,21 @@ cur.execute("""SELECT channel_pk, name FROM channel WHERE active = true""")
 channels = cur.fetchall()
 
 
-def invoke_script(channel_name, php_script, page):
-    subprocess.call([php_script, str(page), channel_name])
+def invoke_script(php_script, page, channel_name):
+    subprocess.call([php_script, page, channel_name])
 
 
+executor = concurrent.futures.ThreadPoolExecutor(10)
 for channel in channels:
     cur.execute("SELECT COUNT(*) FROM message WHERE deleted = false AND channel_fk = %s", (channel[0], ))
     row = cur.fetchone()
     total_messages = row[0]
 
-
-    threads = []
     for page in range(1, int(math.ceil(float(total_messages)/10000))+1):
-        t = threading.Thread(target = invoke_script, args = (channel[1], php_script, page))
-        t.start()
-        threads.append(t)
+        executor.submit(invoke_script, php_script, str(page), channel[1])
 
-    for t in threads:
-        t.join()
+
+executor.shutdown()
 
 cur.close()
 conn.close()
