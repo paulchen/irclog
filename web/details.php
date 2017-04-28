@@ -18,31 +18,39 @@ function overview_redirect() {
 }
 
 function add_user_link(&$row) {
+	global $safe_channel;
+
 	// TODO simplify this
 	$link_parts = build_link_from_request('day', 'month', 'year', 'hour');
 
-	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
+	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row[0]['name'] . '</a>';
 }
 
 function messages_per_hour(&$row) {
+	global $safe_channel;
+
 	$link_parts = build_link_from_request('day', 'month', 'year', 'user');
 
-	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
+	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row[0]['hour'] . '</a>';
 }
 
 function messages_per_month(&$row) {
+	global $safe_channel;
+
 	$link_parts = build_link_from_request('user', 'hour');
 
 	$parts = explode('-', $row[0]['month']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
+	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts&amp;channel=$safe_channel\">" . $row[0]['month'] . '</a>';
 }
 
 function messages_per_year(&$row) {
+	global $safe_channel;
+
 	$link_parts = build_link_from_request('user', 'hour');
 
-	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
+	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts&amp;channel=$safe_channel\">" . $row[0]['year'] . '</a>';
 }
 
 function top_spammers_total($data) {
@@ -88,8 +96,19 @@ if(isset($_REQUEST['hour'])) {
 	$hour = $_REQUEST['hour'];
 }
 
-$filter_parts = array('deleted = false');
-$params = array();
+$channel = $settings['web']['default_channel'];
+if(isset($_REQUEST['channel'])) {
+	$channel = $_REQUEST['channel'];
+}
+$safe_channel = urlencode($channel);
+
+$channel_id = get_channel_id($channel);
+if(!$channel_id) {
+	die();
+}
+
+$filter_parts = array('deleted = false', 'channel_fk = ?');
+$params = array($channel_id);
 $what_parts = array();
 
 if(isset($_REQUEST['hour'])) {
@@ -165,11 +184,13 @@ $queries[] = array(
 		'query' => "select to_char(timestamp, 'YYYY-MM-DD') as day, count(*) as shouts from message m where $filter group by day order by count(*) desc limit 10",
 		'params' => $params,
 		'processing_function' => function(&$row) {
+				global $safe_channel;
+
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
 				$month = $parts[1];
 				$day = $parts[2];
-				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row[0]['day'] . '</a>';
+				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year&amp;channel=$safe_channel\">" . $row[0]['day'] . '</a>';
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Day', 'Messages'),
@@ -231,16 +252,16 @@ $query_total = array(
 	);
 
 if($main_page) {
-	$page_title = 'Spam overview';
+	$page_title = 'Spam overview for #' . htmlentities($channel, ENT_QUOTES, 'UTF-8');
 	$backlink = array(
-		'url' => 'index.php',
-		'text' => 'Chatbox archive',
+		'url' => "index.php?channel=$safe_channel",
+		'text' => '#' . htmlentities($channel, ENT_QUOTES, 'UTF-8') . ' archive',
 	);
 }
 else {
-	$page_title = "Spam overview: $what";
+	$page_title = "Spam overview for #" . htmlentities($channel, ENT_QUOTES, 'UTF-8') . ": $what";
 	$backlink = array(
-			'url' => 'details.php',
+			'url' => "details.php?channel=$safe_channel",
 			'text' => 'Spam overview',
 		);
 }

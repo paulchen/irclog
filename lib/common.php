@@ -415,4 +415,16 @@ function xml_validate($data) {
 	return $data;
 }
 
+function fetch_channels() {
+	$query = 'SELECT name FROM channel WHERE active = TRUE ORDER BY channel_pk ASC';
+	return array_map(function($a) { return $a['name']; }, db_query($query));
+}
 
+function get_channel_id($channel_name) {
+	$query = 'SELECT channel_pk FROM channel WHERE name = ?';
+	$result = db_query($query, array($channel_name));
+	if(count($result) != 1) {
+		return null;
+	}
+	return $result[0]['channel_pk'];
+}

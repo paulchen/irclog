@@ -59,6 +59,10 @@ if(isset($_GET['last_shown_id']) && preg_match('/^[0-9]+$/', $_GET['last_shown_i
 }
 
 $channel = isset($_GET['channel']) ? trim($_GET['channel']) : $settings['web']['default_channel'];
+$channel_id = get_channel_id($channel);
+if(!$channel_id) {
+	die();
+}
 
 $message_data = get_messages($channel, $text, $user, $date, $offset, $limit, $last_shown_id);
 $messages = $message_data['messages'];
@@ -112,8 +116,7 @@ if(!$ajax) {
 		$users = $memcached_data;
 	}
 
-	$query = 'SELECT name FROM channel WHERE active = TRUE ORDER BY channel_pk ASC';
-	$channels = array_map(function($a) { return $a['name']; }, db_query($query));
+	$channels = fetch_channels();
 }
 
 // header('Content-Type: application/xhtml+xml; charset=utf-8');

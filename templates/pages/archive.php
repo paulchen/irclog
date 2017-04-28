@@ -200,7 +200,7 @@ function tab_disabled() {
 		<?php endforeach; ?>
 	</div>
 	<div>
-		<a href="details.php" style="white-space: nowrap;">Spam overview</a>
+		<a href="details.php?channel=<?php echo urlencode($channel); ?>" style="white-space: nowrap;">Spam overview</a>
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
