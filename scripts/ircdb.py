@@ -56,10 +56,10 @@ def get_random_color():
 
 def get_user(username):
     cur = conn.cursor()
-    cur.execute("""SELECT user_pk FROM "user" WHERE username = %s""", (username, ))
+    cur.execute("""SELECT user_pk FROM "user" WHERE username = %s""", (username.strip(), ))
     row = cur.fetchone()
     if row is None:
-        cur.execute("""INSERT INTO "user" (username, color) VALUES (%s, %s) RETURNING user_pk""", (username, get_random_color()))
+        cur.execute("""INSERT INTO "user" (username, color) VALUES (%s, %s) RETURNING user_pk""", (username.strip(), get_random_color()))
         user_id = cur.fetchone()[0]
     else:
         user_id = row[0]
