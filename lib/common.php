@@ -407,7 +407,7 @@ function xml_validate($data) {
 
 		$parameters = array('REQUEST_URI' => $_SERVER['REQUEST_URI']);
 		$attachments = array($filename);
-		send_mail('validation_error.php', 'Validation error', $parameters, false, $attachments);
+		// send_mail('validation_error.php', 'Validation error', $parameters, false, $attachments);
 
 		unlink($filename);
 	}
