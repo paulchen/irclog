@@ -123,7 +123,7 @@ function db_last_insert_id() {
 	return $data[0]['id'];
 }
 
-function log_data() {
+function log_data($output = true) {
 	global $db_queries, $start_time;
 
 	$data = array();
@@ -142,7 +142,13 @@ function log_data() {
 //	TODO
 //	$filename = tempnam(get_setting('request_log_dir'), 'req');
 //	file_put_contents($filename, $serialized_data);
-
+	
+	
+	if($output) {
+		echo "<!-- \n";
+		print_r($data);
+		echo "-->\n";
+	}
 	return;
 }
 
@@ -379,7 +385,7 @@ function send_mail($template, $subject, $parameters = array(), $fatal = false, $
 			'Subject' => $subject,
 		);
 
-	$mime = &new Mail_Mime(array('text_charset' => 'UTF-8'));
+	$mime = new Mail_Mime(array('text_charset' => 'UTF-8'));
 	$mime->setTXTBody($message);
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
 	foreach($attachments as $attachment) {
