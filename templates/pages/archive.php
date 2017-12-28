@@ -11,9 +11,9 @@ if(!$ajax):
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style type="text/css">
 	@font-face { font-family: 'Noto Color Emoji'; src: url('css/NotoColorEmoji.ttf'); }
-	@font-face { font-family: 'Noto Sans UI'; src: url('css/NotoSansUI-Regular.ttf'); }
-	@font-face { font-family: 'Noto Sans UI Bold'; src: url('css/NotoSansUI-Bold.ttf'); }
-	body { font-family: 'Noto Sans UI', 'Noto Color Emoji', Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 14px; } 
+	@font-face { font-family: 'Noto Sans'; src: url('css/NotoSans-Regular.ttf'); }
+	@font-face { font-family: 'Noto Sans Bold'; src: url('css/NotoSans-Bold.ttf'); }
+	body { font-family: 'Noto Sans', 'Noto Color Emoji', Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 14px; } 
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
