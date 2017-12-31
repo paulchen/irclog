@@ -140,7 +140,7 @@ def extract_text(line):
     return match.group(1)
 
 
-def process_file(filename, short_name, channel):
+def process_file(filename, short_name, channel, user_ids):
     logger.debug('Processing file %s, channel #%s' % (short_name, channel['name']))
 
     match = re.match(filename_pattern, short_name)
@@ -163,6 +163,9 @@ def process_file(filename, short_name, channel):
                 timestamp = extract_timestamp(line, date_string)
                 (user_flag, user_id, message_type) = extract_nickname(line)
                 text = extract_text(line)
+               
+                if user_id != None:
+                    user_ids.add(user_id)
 
                 if timestamp is not None:
                     logger.debug('Inserting line %s' % line_number)
@@ -196,6 +199,7 @@ cur.execute("""SELECT channel_pk, name, visible_shouts, last_update, directory F
 channels = cur.fetchall()
 cur.close()
 
+user_ids = set()
 for channel in channels:
     last_update = channel['last_update']
     directory = channel['directory']
@@ -215,7 +219,7 @@ for channel in channels:
     messages_added = 0
     for f in files:
         filename = os.path.join(directory, f)
-        messages_added += process_file(filename, f, channel)
+        messages_added += process_file(filename, f, channel, user_ids)
 
     cur = conn.cursor()
     total_messages = channel['visible_shouts']
@@ -228,6 +232,22 @@ for channel in channels:
 
     conn.commit()
     cur.close()
+
+if len(user_ids) > 0:
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""SELECT u.username, m.type, MAX(m.timestamp) "timestamp" FROM message m JOIN "user" u ON (m.user_fk = u.user_pk) WHERE u.user_pk IN %s GROUP BY u.username, m.type""", (tuple(user_ids), ))
+    last_seen_data = cur.fetchall()
+
+    for last_seen_row in last_seen_data:
+        username = last_seen_row['username']
+        message_type = last_seen_row['type']
+        timestamp = last_seen_row['timestamp']
+
+        cur.execute("""INSERT INTO last_seen (username, type, timestamp) VALUES (%s, %s, %s) ON CONFLICT ON CONSTRAINT last_seen_pkey DO UPDATE SET timestamp = EXCLUDED.timestamp WHERE last_seen.username = EXCLUDED.username AND last_seen.type = EXCLUDED.type""", (username, message_type, timestamp))
+
+    conn.commit()
+    cur.close()
+
 
 conn.close()
 
