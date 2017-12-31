@@ -34,3 +34,9 @@ CREATE TABLE accounts (
     primary key (id)
 );
 
+CREATE TABLE last_seen (
+    username text NOT NULL,
+    "type" integer NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL,
+    primary key ("username", "type")
+);
