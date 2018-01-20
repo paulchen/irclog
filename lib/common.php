@@ -279,6 +279,7 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 
 	$data = array();
 	$users = array();
+	$ids = array();
 	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$link = '?channel=' . urlencode($channel) . '&amp;user=' . urlencode($row['username']) . "&amp;limit=$limit";
 		if($text != '') {
@@ -304,6 +305,8 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 		$message_pk = $row['message_pk'];
 		unset($row['message_pk']);
 
+		$ids[] = $message_pk;
+
 		$user_pk = $row['user_pk'];
 		$username = $row['username'];
 		$color = $row['color'];
@@ -321,11 +324,9 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 	db_stmt_close($result);
 
 	$last_loaded_id = -1;
-	/* TODO
 	if(count($ids) > 0) {
 		$last_loaded_id = $ids[0];
 	}
-	 */
 
 	$query = 'SELECT visible_shouts FROM channel WHERE name = ?';
 	$result = db_query($query, array($channel));
