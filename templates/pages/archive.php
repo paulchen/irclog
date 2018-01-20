@@ -7,7 +7,7 @@ if(!$ajax):
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-	<title>#chatbox archive</title>
+	<title>#<?php echo htmlentities($channel, ENT_QUOTES, 'UTF-8') ?> archive</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style type="text/css">
 	@font-face { font-family: 'Noto Color Emoji'; src: url('css/NotoColorEmoji.ttf'); }
