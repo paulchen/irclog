@@ -163,7 +163,7 @@ function show_unread_message_count() {
 	if(new_messages > 0) {
 		title = '(' + new_messages + ') ';
 	}
-	title += 'Chatbox archive';
+	title += '#chatbox archive';
 	$(document).prop('title', title);
 }
 
