@@ -263,7 +263,7 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 		$count_params = $params;
 		$count_params[] = $last_shown_id;
 		$count_data = db_query($count_query, $count_params);
-		$new_messages = $count_data[0]['anzahl'];
+		$new_messages = $count_data[0]['anzahl'] - $offset;
 	}
 
 	$query = "SELECT m.message_pk, m.timestamp, u.username, m.text, m.html, u.color, u.user_pk, m.type
