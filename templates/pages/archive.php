@@ -104,10 +104,10 @@ function update_refresh() {
 
 function reset_form() {
 	if($('#refresh_checkbox').is(':checked')) {
-		document.location.href = '?refresh=on';
+		document.location.href = '?refresh=on&channel=<?php echo $channel ?>';
 	}
 	else {
-		document.location.href = '?';
+		document.location.href = '?channel=<?php echo $channel ?>';
 	}
 }
 
