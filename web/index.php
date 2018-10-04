@@ -138,5 +138,5 @@ if(!$ajax) {
 ob_start("ob_gzhandler");
 echo $data;
 
-log_data();
+log_data(!$ajax);
 
