@@ -24,7 +24,7 @@ if(isset($_GET['id'])) {
 	$channel = $result[0]['name'];
 	$channel_id = $result[0]['channel_pk'];
 
-	$query = 'SELECT COUNT(*) messages FROM message WHERE message_pk > ? AND channel_fk = ?';
+	$query = 'SELECT COUNT(*) messages FROM message WHERE message_pk > ? AND channel_fk = ? AND deleted = 0';
 	$data = db_query($query, array($id, $channel_id));
 
 	$page = floor($data[0]['messages']/$limit)+1;
