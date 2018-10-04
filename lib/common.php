@@ -393,7 +393,7 @@ function send_mail($template, $subject, $parameters = array(), $fatal = false, $
 		$mime->addAttachment($attachment, finfo_file($finfo, $attachment));
 	}
 
-	$mail =& Mail::factory('smtp');
+	$mail = Mail::factory('smtp');
 	$mail->send($report_email, $mime->headers($headers), $mime->get());
 
 	if($fatal) {
