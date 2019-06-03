@@ -17,47 +17,55 @@ function overview_redirect() {
 	die();
 }
 
-function add_user_link(&$row) {
+function add_user_link($row) {
 	global $safe_channel;
 
 	// TODO simplify this
 	$link_parts = build_link_from_request('day', 'month', 'year', 'hour');
 
-	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row[0]['name'] . '</a>';
+	$row['name'] = '<a href="details.php?user=' . urlencode($row['name']) . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row['name'] . '</a>';
+
+	return $row;
 }
 
-function messages_per_hour(&$row) {
+function messages_per_hour($row) {
 	global $safe_channel;
 
 	$link_parts = build_link_from_request('day', 'month', 'year', 'user');
 
-	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row[0]['hour'] . '</a>';
+	$row['hour'] = '<a href="details.php?hour=' . $row['hour'] . $link_parts . '&amp;channel=' . $safe_channel . '">' . $row['hour'] . '</a>';
+
+	return $row;
 }
 
-function messages_per_month(&$row) {
+function messages_per_month($row) {
 	global $safe_channel;
 
 	$link_parts = build_link_from_request('user', 'hour');
 
-	$parts = explode('-', $row[0]['month']);
+	$parts = explode('-', $row['month']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts&amp;channel=$safe_channel\">" . $row[0]['month'] . '</a>';
+	$row['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts&amp;channel=$safe_channel\">" . $row['month'] . '</a>';
+
+	return $row;
 }
 
-function messages_per_year(&$row) {
+function messages_per_year($row) {
 	global $safe_channel;
 
 	$link_parts = build_link_from_request('user', 'hour');
 
-	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts&amp;channel=$safe_channel\">" . $row[0]['year'] . '</a>';
+	$row['year'] = "<a href=\"details.php?year=" . $row['year'] . "$link_parts&amp;channel=$safe_channel\">" . $row['year'] . '</a>';
+
+	return $row;
 }
 
 function top_spammers_total($data) {
 	global $total_days;
 
 	$total_shouts = 0;
-	foreach($data[0] as $row) {
+	foreach($data as $row) {
 		$total_shouts += $row['shouts'];
 	}
 
@@ -183,14 +191,16 @@ $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "select to_char(timestamp, 'YYYY-MM-DD') as day, count(*) as shouts from message m where $filter group by day order by count(*) desc limit 10",
 		'params' => $params,
-		'processing_function' => function(&$row) {
+		'processing_function' => function($row) {
 				global $safe_channel;
 
-				$parts = explode('-', $row[0]['day']);
+				$parts = explode('-', $row['day']);
 				$year = $parts[0];
 				$month = $parts[1];
 				$day = $parts[2];
-				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year&amp;channel=$safe_channel\">" . $row[0]['day'] . '</a>';
+				$row['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year&amp;channel=$safe_channel\">" . $row['day'] . '</a>';
+
+				return $row;
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Day', 'Messages'),
@@ -238,14 +248,6 @@ if(!isset($_REQUEST['month'])) {
 			),
 		);
 }
-/*
-$queries[] = array(
-		'title' => '',
-		'query' => "",
-		'columns' => array(),
-		'column_styles' => array(),
-	);
- */
 $query_total = array(
 		'query' => "SELECT COUNT(*) shouts FROM message m WHERE $filter",
 		'params' => $params,

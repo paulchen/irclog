@@ -3,25 +3,25 @@
 
 require_once(dirname(__FILE__) . '/common.php');
 
-function ex_aequo2(&$data) {
-	ex_aequo($data, 2);
+function ex_aequo2($data) {
+	return ex_aequo($data, 2);
 }
 
-function ex_aequo3(&$data) {
-	ex_aequo($data, 3);
+function ex_aequo3($data) {
+	return ex_aequo($data, 3);
 }
 
-function ex_aequo4(&$data) {
-	ex_aequo($data, 4);
+function ex_aequo4($data) {
+	return ex_aequo($data, 4);
 }
 
-function ex_aequo9(&$data) {
-	ex_aequo($data, 9);
+function ex_aequo9($data) {
+	return ex_aequo($data, 9);
 }
 
-function ex_aequo(&$data, $col) {
+function ex_aequo($data, $col) {
 	$last_value = -1;
-	foreach($data[0] as &$row) {
+	foreach($data as &$row) {
 		$keys = array_keys($row);
 		$first_row = $keys[0];
 		$compare_row = $keys[$col];
@@ -31,56 +31,26 @@ function ex_aequo(&$data, $col) {
 		$last_value = $row[$compare_row];
 	}
 	unset($row);
+
+	return $data;
 }
 
-/*
-function spammer_smiley(&$row) {
-	if($row[0]['top_spammer'] != '$$$$') {
-		$parts = explode('$$', $row[0]['top_spammer']);
-		$row[0]['top_spammer'] = "<a href=\"details.php?user={$parts[1]}\">{$parts[1]}</a> ({$parts[2]}x)";
-	}
-	else {
-		$row[0]['top_spammer'] = '-';
-	}
-
-	if($row[0]['popular_smiley'] != '$$$$') {
-		$parts = explode('$$', $row[0]['popular_smiley']);
-		$row[0]['popular_smiley'] = "<a href=\"details.php?smiley={$parts[0]}\"><img src=\"images/smilies/{$parts[1]}\" alt=\"\" /></a> ({$parts[2]}x)";
-	}
-	else {
-		$row[0]['popular_smiley'] = '-';
-	}
-
-	if($row[0]['popular_word'] != '$$$$') {
-		$parts = explode('$$', $row[0]['popular_word']);
-		$row[0]['popular_word'] = "<a href=\"details.php?word=" . urlencode($parts[1]) . "\">{$parts[1]}</a> ({$parts[2]}x)";
-	}
-	else {
-		$row[0]['popular_word'] = '-';
-	}
-}
- */
-
-function duplicates0(&$data) {
-	duplicates($data, array(0));
+function duplicates0($data) {
+	return duplicates($data, array(0));
 }
 
-function duplicates1(&$data) {
-	duplicates($data, array(1));
+function duplicates1($data) {
+	return duplicates($data, array(1));
 }
 
-function duplicates(&$data, $columns) {
-	if(count($data[0]) == 0) {
-		return;
-	}
-
-	$column_names = array_keys($data[0][0]);
+function duplicates($data, $columns) {
+	$column_names = array_keys($data[0]);
 	$names = array();
 	foreach($columns as $column) {
 		$names[] = $column_names[$column];
 	}
 
-	foreach($data[0] as $index => $row) {
+	foreach($data as $index => $row) {
 		if(isset($last_row)) {
 			$equal = true;
 			foreach($names as $name) {
@@ -90,53 +60,26 @@ function duplicates(&$data, $columns) {
 				}
 			}
 			if($equal) {
-				unset($data[0][$index]);
+				unset($data[$index]);
 			}
 		}
 		$last_row = $row;
 	}
+
+	return $data;
 }
 
-function insert_position(&$data) {
+function insert_position($data) {
 	$index = 0;
-	foreach($data[0] as &$row) {
+	foreach($data as &$row) {
 		$index++;
 		array_unshift($row, "$index.");
 	}
+	unset($row);
+	return $data;
 }
-
-/*
-function smiley_column(&$row) {
-	if($row[0]['smiley_info'] == '$$$$') {
-		$row[0]['smiley_info'] = '-';
-		return;
-	}
-
-	$smiley_info = explode('$$', $row[0]['smiley_info']);
-	$id = $smiley_info[0];
-	$filename = $smiley_info[1];
-	$count = $smiley_info[2];
-
-	$row[0]['smiley_info'] = "<a href=\"details.php?smiley=$id\"><img src=\"images/smilies/$filename\" alt=\"\" /></a>&nbsp;(${count}x)";
-}
-
-function word_column(&$row) {
-	if($row[0]['word_info'] == '$$$$') {
-		$row[0]['word_info'] = '-';
-		return;
-	}
-
-	$word_info = explode('$$', $row[0]['word_info']);
-	$id = $word_info[0];
-	$word = $word_info[1];
-	$count = $word_info[2];
-	$link = 'details.php?word=' . urlencode($word);
-	$row[0]['word_info'] = "<a href=\"$link\">$word</a>&nbsp;(${count}x)";
-}
- */
 
 function top_spammers($data) {
-	$data = $data[0];
 	foreach($data as $index => $row) {
 		if(isset($last_row) && $last_row['name'] == $row['name']) {
 			unset($data[$index]);
@@ -171,7 +114,6 @@ function top_spammers($data) {
 }
 
 function busiest_hours($data) {
-	$data = $data[0];
 	usort($data, function($a, $b) {
 		if($a['shouts'] == $b['shouts']) {
 			if($a['hour'] == $b['hour']) {
@@ -193,7 +135,6 @@ function busiest_hours($data) {
 }
 
 function busiest_time($data) {
-	$data = $data[0];
 	// TODO duplicate code
 	usort($data, function($a, $b) {
 		if($a['shouts'] == $b['shouts']) {
@@ -248,7 +189,7 @@ for($index=0; $index<count($queries); $index++) {
 			}
 			$index++;
 
-			$derived_query['data'] = call_user_func($derived_query['transformation_function'], array($data));
+			$derived_query['data'] = call_user_func($derived_query['transformation_function'], $data);
 			$queries[$index] = $derived_query;
 		}
 	}
@@ -260,11 +201,11 @@ foreach($queries as $index => $query) {
 	if(isset($query['processing_function_all'])) {
 		if(is_array($query['processing_function_all'])) {
 			foreach($query['processing_function_all'] as $func) {
-				call_user_func($func, array(&$data));
+				$data = call_user_func($func, $data);
 			}
 		}
 		else {
-			call_user_func($query['processing_function_all'], array(&$data));
+			call_user_func($query['processing_function_all'], $data);
 		}
 	}
 
@@ -272,21 +213,21 @@ foreach($queries as $index => $query) {
 		if(is_array($query['processing_function'])) {
 			foreach($query['processing_function'] as $func) {
 				foreach($data as $key => &$value) {
-					call_user_func($func, array(&$value));
+					$value = call_user_func($func, $value);
 				}
 				unset($value);
 			}
 		}
 		else {
 			foreach($data as $key => &$value) {
-				call_user_func($query['processing_function'], array(&$value));
+				$value = call_user_func($query['processing_function'], $value);
 			}
 			unset($value);
 		}
 	}
 
 	if(isset($query['total'])) {
-		$queries[$index]['total'] = call_user_func($query['total'], array($data));
+		$queries[$index]['total'] = call_user_func($query['total'], $data);
 	}
 
 	foreach($data as $row) {
