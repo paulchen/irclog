@@ -204,7 +204,10 @@ function tab_disabled() {
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
-		<tr><td>Text:</td><td><input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" /></td></tr>
+		<tr><td>Text:</td><td>
+			<input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" />
+			<input id="regex_checkbox" type="checkbox" name="regex" <?php if($regex) echo 'checked="checked"'; ?> />&nbsp;<label for="regex_checkbox">Regular expression</label>
+		</td></tr>
 		<tr><td>User:</td><td><input type="text" name="user" value="<?php if(isset($_GET['user'])) echo htmlentities($_GET['user'], ENT_QUOTES, 'UTF-8') ?>" id="name_input" /></td></tr>
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
 		<tr><td>Page:</td><td><span style="white-space: nowrap;"><input type="text" name="page" value="<?php echo $page; ?>" /> (of <span class="page_count"><?php echo $page_count; ?></span>)</span> <span style="white-space: nowrap;"><a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>" class="next_link">Next</a> <a href="<?php echo $last_link ?>" class="last_link">Last</a></span></td></tr>

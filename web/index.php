@@ -48,6 +48,7 @@ $offset = intval($offset);
 
 $ajax = (isset($_GET['ajax']) && $_GET['ajax'] == 'on');
 $refresh = (!isset($_GET['refresh']) || $_GET['refresh'] == 'on');
+$regex = (isset($_GET['regex']) && $_GET['regex'] == 'on');
 
 $text = isset($_GET['text']) ? trim($_GET['text']) : '';
 $user = isset($_GET['user']) ? trim($_GET['user']) : '';
@@ -64,7 +65,7 @@ if(!$channel_id) {
 	die();
 }
 
-$message_data = get_messages($channel, $text, $user, $date, $offset, $limit, $last_shown_id);
+$message_data = get_messages($channel, $text, $user, $date, $offset, $limit, $last_shown_id, $regex);
 $messages = $message_data['messages'];
 $user_details = $message_data['users'];
 $filtered_shouts = $message_data['filtered_shouts'];
