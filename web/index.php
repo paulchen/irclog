@@ -84,6 +84,9 @@ if($user != '') {
 if($date != '') {
 	$link_parts .= '&amp;date=' . urlencode($date);
 }
+if($regex) {
+	$link_parts .= '&amp;regex=on';
+}
 $previous_page = $page-1;
 if($previous_page <= 0) {
 	$previous_page = 1;
