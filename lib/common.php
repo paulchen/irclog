@@ -50,8 +50,13 @@ foreach($memcached_servers as $server) {
 }
  */
 
-function db_query($query, $parameters = array()) {
-	$stmt = db_query_resultset($query, $parameters);
+$ignored_db_errors = array();
+
+function db_query($query, $parameters = array(), $errors_to_ignore = array()) {
+	$stmt = db_query_resultset($query, $parameters, $errors_to_ignore);
+	if(!$stmt) {
+		return array();
+	}
 	$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	db_stmt_close($stmt);
 	return $data;
@@ -64,8 +69,8 @@ function db_stmt_close($stmt) {
 	}
 }
 
-function db_query_resultset($query, $parameters = array()) {
-	global $db, $db_queries;
+function db_query_resultset($query, $parameters = array(), $errors_to_ignore = array()) {
+	global $db, $db_queries, $ignored_db_errors;
 
 	$query_start = microtime(true);
 	if(!($stmt = $db->prepare($query))) {
@@ -77,6 +82,10 @@ function db_query_resultset($query, $parameters = array()) {
 	}
 	if(!$stmt->execute()) {
 		$error = $stmt->errorInfo();
+		if(in_array($error[0], $errors_to_ignore)) {
+			$ignored_db_errors[] = $error[0];
+			return null;
+		}
 		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
 
@@ -236,10 +245,14 @@ function colorize_nick($text, $nick, $color, $user_link) {
 }
 
 function get_messages($channel = '', $text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1, $regex) {
+	$errors_to_ignore = array();
+
 	$filters = array('deleted = false', 'c.name = ?');
 	$params = array($channel);
 	if($text != '') {
 		if($regex) {
+			$errors_to_ignore[] = '2201B'; // invalid regular expression
+
 			$filters[] = 'm.text ~* ?';
 			$params[] = "$text";
 		}
@@ -267,7 +280,7 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 				WHERE $filter AND m.message_pk > ?";
 		$count_params = $params;
 		$count_params[] = $last_shown_id;
-		$count_data = db_query($count_query, $count_params);
+		$count_data = db_query($count_query, $count_params, $errors_to_ignore);
 		$new_messages = $count_data[0]['anzahl'] - $offset;
 	}
 
@@ -280,53 +293,55 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
-	$result = db_query_resultset($query, $params);
+	$result = db_query_resultset($query, $params, $errors_to_ignore);
 
 	$data = array();
 	$users = array();
 	$ids = array();
-	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		$link = '?channel=' . urlencode($channel) . '&amp;user=' . urlencode($row['username']) . "&amp;limit=$limit";
-		if($text != '') {
-			$link .= '&amp;text=' . urlencode($text);
-		}
-
-		if($row['html'] != '') {
-			$row['text'] = $row['html'];
-		}
-		else {
-			$row['text'] = insert_smileys1($row['text']);
-			$row['text'] = htmlspecialchars($row['text'], ENT_COMPAT, 'UTF-8');
-			$row['text'] = linkify($row['text']);
-			$row['text'] = insert_smileys2($row['text']);
-			if($row['type'] > 0) {
-				$row['text'] = colorize_nick($row['text'], $row['username'], $row['color'], $link);
+	if($result) {
+		while($row = $result->fetch(PDO::FETCH_ASSOC)) {
+			$link = '?channel=' . urlencode($channel) . '&amp;user=' . urlencode($row['username']) . "&amp;limit=$limit";
+			if($text != '') {
+				$link .= '&amp;text=' . urlencode($text);
 			}
 
-			db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
+			if($row['html'] != '') {
+				$row['text'] = $row['html'];
+			}
+			else {
+				$row['text'] = insert_smileys1($row['text']);
+				$row['text'] = htmlspecialchars($row['text'], ENT_COMPAT, 'UTF-8');
+				$row['text'] = linkify($row['text']);
+				$row['text'] = insert_smileys2($row['text']);
+				if($row['type'] > 0) {
+					$row['text'] = colorize_nick($row['text'], $row['username'], $row['color'], $link);
+				}
+
+				db_query('UPDATE message SET html = ? WHERE message_pk = ?', array($row['text'], $row['message_pk']));
+			}
+			unset($row['html']);
+
+			$message_pk = $row['message_pk'];
+			unset($row['message_pk']);
+
+			$ids[] = $message_pk;
+
+			$user_pk = $row['user_pk'];
+			$username = $row['username'];
+			$color = $row['color'];
+
+			unset($row['username']);
+			unset($row['color']);
+			unset($row['user_link']);
+
+			$data[$message_pk] = $row;
+
+			if($username != '') {
+				$users[$user_pk] = array('username' => $username, 'color' => $color, 'link' => $link);
+			}
 		}
-		unset($row['html']);
-
-		$message_pk = $row['message_pk'];
-		unset($row['message_pk']);
-
-		$ids[] = $message_pk;
-
-		$user_pk = $row['user_pk'];
-		$username = $row['username'];
-		$color = $row['color'];
-
-		unset($row['username']);
-		unset($row['color']);
-		unset($row['user_link']);
-
-		$data[$message_pk] = $row;
-
-		if($username != '') {
-			$users[$user_pk] = array('username' => $username, 'color' => $color, 'link' => $link);
-		}
+		db_stmt_close($result);
 	}
-	db_stmt_close($result);
 
 	$last_loaded_id = -1;
 	if(count($ids) > 0) {
@@ -348,8 +363,9 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 		// limit and offset
 		array_pop($params);
 		array_pop($params);
-		$db_data = db_query($query, $params);
-		$filtered_shouts = $db_data[0]['shouts'];
+		$db_data = db_query($query, $params, $errors_to_ignore);
+		$filtered_shouts = (count($db_data) > 0) ? $db_data[0]['shouts'] : 0;
+
 	}
 	else {
 		$filtered_shouts = $total_shouts;
@@ -439,4 +455,14 @@ function get_channel_id($channel_name) {
 		return null;
 	}
 	return $result[0]['channel_pk'];
+}
+
+function resolve_error_code($code) {
+	$known_errors = array(
+		'2201B' => 'Invalid regular expression',
+	);
+	if(isset($known_errors[$code])) {
+		return "Error: {$known_errors[$code]}";
+	}
+	return "Error $code";
 }

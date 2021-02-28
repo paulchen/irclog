@@ -120,6 +120,8 @@ if(!$ajax) {
 	$channels = fetch_channels();
 }
 
+$errors = array_map('resolve_error_code', array_unique($ignored_db_errors));
+
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
 header('Content-Type: text/html; charset=utf-8');
 

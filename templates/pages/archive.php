@@ -204,6 +204,13 @@ function tab_disabled() {
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
+		<?php if(count($errors) > 0): ?>
+			<tr><td colspan="2">
+				<?php foreach($errors as $error): ?>
+					<div style="color: red;"><?php echo htmlentities($error, ENT_QUOTES, 'UTF-8') ?></div>
+				<?php endforeach; ?>
+			</td></tr>
+		<?php endif; ?>
 		<tr><td>Text:</td><td>
 			<input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" />
 			<input id="regex_checkbox" type="checkbox" name="regex" <?php if($regex) echo 'checked="checked"'; ?> />&nbsp;<label for="regex_checkbox">Regular expression</label>
