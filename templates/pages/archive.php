@@ -213,7 +213,7 @@ function tab_disabled() {
 		<?php endif; ?>
 		<tr><td>Text:</td><td>
 			<input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" />
-			<input id="regex_checkbox" type="checkbox" name="regex" <?php if($regex) echo 'checked="checked"'; ?> />&nbsp;<label for="regex_checkbox">Regular expression</label>
+			<input id="regex_checkbox" type="checkbox" name="regex" <?php if($regex) echo 'checked="checked"'; ?> />&nbsp;<label for="regex_checkbox">Regular expression</label> (<a href="https://www.postgresql.org/docs/11/functions-matching.html#FUNCTIONS-POSIX-REGEXP">documentation</a>)
 		</td></tr>
 		<tr><td>User:</td><td><input type="text" name="user" value="<?php if(isset($_GET['user'])) echo htmlentities($_GET['user'], ENT_QUOTES, 'UTF-8') ?>" id="name_input" /></td></tr>
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
