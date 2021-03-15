@@ -21,6 +21,8 @@ CREATE TABLE message (
     foreign key (user_fk) references "user" (user_pk)
 );
 
+CREATE INDEX idx_gin ON message USING gin (text gin_trgm_ops);
+
 CREATE TABLE settings (
     key varchar(50) NOT NULL,
     value text NOT NULL,
