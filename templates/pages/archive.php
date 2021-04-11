@@ -240,7 +240,7 @@ endif; /* if(!$ajax) */ ?>
 						<td class="date"><a id="message<?php echo $message_id ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message_id ?>"><?php echo $message['timestamp'] ?></a></td>
 						<td class="user">
 							<?php if($message['type'] == 0): ?>
-								<a style="color: #<?php echo $user['color'] ?>" href="<?php echo $user['link'] ?>"><?php echo $user['username'] ?></a>
+								<span style="opacity: 0;">&lt;</span><a style="color: #<?php echo $user['color'] ?>" href="<?php echo $user['link'] ?>"><?php echo $user['username'] ?></a><span style="opacity: 0;">&gt;</span>
 							<?php endif; ?>
 						</td>
 						<td class="message">
