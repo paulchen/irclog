@@ -42,3 +42,15 @@ CREATE TABLE last_seen (
     "timestamp" timestamp without time zone NOT NULL,
     primary key ("username", "type")
 );
+
+CREATE OR REPLACE FUNCTION to_day(some_time timestamp without time zone)
+  RETURNS text
+AS
+$BODY$
+    select to_char($1, 'yyyy-mm-dd');
+$BODY$
+LANGUAGE sql
+IMMUTABLE;
+
+create index message_day_channel_deleted_idx on message (deleted, channel_fk, to_day("timestamp")); 
+

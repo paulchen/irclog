@@ -266,7 +266,7 @@ function get_messages($channel = '', $text = '', $user = '', $date = '', $offset
 		$params[] = $user;
 	}
 	if($date != '') {
-		$filters[] = "TO_CHAR(m.timestamp, 'YYYY-MM-DD') = ?";
+		$filters[] = "TO_DAY(m.timestamp) = ?";
 		$params[] = $date;
 	}
 	$filter = implode(' AND ', $filters);
