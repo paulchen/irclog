@@ -220,7 +220,7 @@ function tab_disabled() {
 		<tr><td>Page:</td><td><span style="white-space: nowrap;"><input type="text" name="page" value="<?php echo $page; ?>" /> (of <span class="page_count"><?php echo $page_count; ?></span>)</span> <span style="white-space: nowrap;"><a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>" class="next_link">Next</a> <a href="<?php echo $last_link ?>" class="last_link">Last</a></span></td></tr>
 		<tr><td>Date:</td><td><input type="text" name="date" value="<?php if(isset($_GET['date'])) echo htmlentities($_GET['date'], ENT_QUOTES, 'UTF-8') ?>" id="date_input" /></td></tr>
 		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="reset_form();" /></td></tr>
-		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr>
+		<!-- <tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr> -->
 		</table>
 		<input type="hidden" name="channel" value="<?php echo htmlentities($channel, ENT_QUOTES, 'UTF-8') ?>" />
 		</form>
