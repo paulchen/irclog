@@ -22,7 +22,7 @@ $refresh_time = $settings['web']['refresh_time'];
 
 /* HTTP basic authentication */
 if(!defined('STDIN') && !isset($argc)) {
-	if(!isset($_SERVER['PHP_AUTH_USER'])) {
+	if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
 		noauth();
 	}
 
